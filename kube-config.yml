@@ -1,0 +1,26 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: billing-deployment
+  labels:
+    app: billing
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: billing
+  template:
+    metadata:
+      labels:
+        app: billing
+    spec:
+      containers:
+      - name: billing
+        image: registry.gitlab.com/pshenmic/ivend/billing
+        ports:
+        - containerPort: 3500
+        envFrom:
+          - configMapRef:
+              name: billing-config
+      imagePullSecrets:
+      - name: gitlabregistrycred
