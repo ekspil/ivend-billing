@@ -1,0 +1,60 @@
+version: 2
+
+jobs:
+  build:
+    docker:
+      - image: circleci/node:11.1.0
+
+    working_directory: ~/repo
+
+    steps:
+      - checkout
+
+      - restore_cache:
+          keys:
+          - v1-dependencies-{{ checksum "package.json" }}-{{ checksum "package-lock.json" }}
+          - v1-dependencies-{{ checksum "package.json" }}-
+          - v1-dependencies-
+
+      - run: npm install
+
+      - save_cache:
+          paths:
+            - node_modules
+          key: v1-dependencies-{{ checksum "package.json" }}-{{ checksum "package-lock.json" }}
+
+  deploy:
+    docker:
+      - image: circleci/node:11.1.0
+
+    working_directory: ~/repo
+
+    steps:
+      - add_ssh_keys:
+          fingerprints:
+            - "49:d0:99:ae:33:c3:33:11:f9:5c:9e:85:44:90:2b:78"
+      - run:
+          name: Keyscan deploy server
+          command: ssh-keyscan -H $DEPLOY_SERVER >> ~/.ssh/known_hosts
+
+      - run:
+          name: Deploy
+          command: ssh root@$DEPLOY_SERVER 'source /opt/.env && cd /opt/ivend-billing && git pull && docker-compose up -d --build'
+
+workflows:
+  version: 2
+  billing_deploy:
+    jobs:
+      - build:
+          filters:
+            branches:
+              only:
+                - master
+                - develop
+      - deploy:
+          filters:
+            branches:
+              only:
+                - master
+          requires:
+            - build
