@@ -39,7 +39,7 @@ jobs:
 
       - run:
           name: Deploy
-          command: ssh root@$DEPLOY_SERVER 'source /opt/.env && cd /opt/ivend-billing && git pull && docker-compose up -d --build'
+          command: ssh root@$DEPLOY_SERVER 'source /opt/.env && cd /opt/billing && git pull && docker-compose up -d --build'
 
 workflows:
   version: 2
