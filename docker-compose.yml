@@ -1,0 +1,19 @@
+version: '3.7'
+
+services:
+  billing:
+    build:
+      context: ./
+    environment:
+      - "NODE_ENV=production"
+      - "YANDEX_SHOP_ID=${YANDEX_SHOP_ID}"
+      - "YANDEX_SECRET_KEY=${YANDEX_SECRET_KEY}"
+    ports:
+      - "3500:3500"
+    restart: always
+    deploy:
+      restart_policy:
+        condition: on-failure
+        delay: 30s
+        max_attempts: 5
+        window: 15s
