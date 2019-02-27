@@ -34,8 +34,8 @@ function billDailyServices({knex}) {
                             amount: -service.price,
                             user_id: service.user_id,
                             meta: `${service.name.toLowerCase()}_${service.id}_${service.controller_id}`,
-                            createdAt: new Date(),
-                            updatedAt: new Date()
+                            created_at: new Date(),
+                            updated_at: new Date()
                         })
                 }
             }

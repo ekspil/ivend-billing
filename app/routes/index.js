@@ -16,13 +16,13 @@ function Routes({fastify, knex, yandexKassaService}) {
             const [paymentRequestId] = await knex("payment_requests")
                 .returning("id")
                 .insert({
-                    paymentId: id,
-                    idempotenceKey,
-                    redirectUrl: confirmation_url,
+                    payment_id: id,
+                    idempotence_key: idempotenceKey,
+                    redirect_url: confirmation_url,
                     status,
                     to,
-                    createdAt: new Date(),
-                    updatedAt: new Date()
+                    created_at: new Date(),
+                    updated_at: new Date()
                 })
 
 

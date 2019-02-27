@@ -3,16 +3,16 @@ function checkPaymentRequests({knex, yandexKassaService}) {
         console.log(`Starting checkPaymentRequest job at ${new Date()}`)
 
         const paymentRequests = await knex
-            .select("id", "status", "paymentId", "to")
+            .select("id", "status", "payment_id", "to")
             .from("payment_requests")
             .where("status", "pending")
 
 
         for (const paymentRequest of paymentRequests) {
 
-            const {paymentId, to} = paymentRequest
+            const {payment_id, to} = paymentRequest
             //Request actual info about payment
-            const updatedPaymentRequest = await yandexKassaService.getPayment(paymentId)
+            const updatedPaymentRequest = await yandexKassaService.getPayment(payment_id)
 
             const updatedStatus = updatedPaymentRequest.status
 
@@ -38,8 +38,8 @@ function checkPaymentRequests({knex, yandexKassaService}) {
                                             amount: deposit.amount,
                                             user_id: deposit.user_id,
                                             meta: `deposit_${deposit.id}`,
-                                            createdAt: new Date(),
-                                            updatedAt: new Date()
+                                            created_at: new Date(),
+                                            updated_at: new Date()
                                         })
                                         .then((resp) => {
                                             return knex("payment_requests")
@@ -53,7 +53,7 @@ function checkPaymentRequests({knex, yandexKassaService}) {
                                 .then(trx.commit)
                                 .catch(trx.rollback)
                         })
-                        console.log(`Payment ${paymentId} succesfully confirmed`)
+                        console.log(`Payment ${payment_id} succesfully confirmed`)
                         break
                     case "canceled":
                         //update
@@ -62,7 +62,7 @@ function checkPaymentRequests({knex, yandexKassaService}) {
                             .where("id", "=", paymentRequest.id)
                             .update({status: updatedStatus})
                             .returning("id")
-                        console.log(`Payment ${paymentId} was cancelled`)
+                        console.log(`Payment ${payment_id} was cancelled`)
                         break
                     default:
                         throw new Error("Payment request updated to unknown status")
