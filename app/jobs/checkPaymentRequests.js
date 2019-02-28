@@ -1,7 +1,5 @@
 function checkPaymentRequests({knex, yandexKassaService}) {
     return async () => {
-        console.log(`Starting checkPaymentRequest job at ${new Date()}`)
-
         const paymentRequests = await knex
             .select("id", "status", "payment_id", "to")
             .from("payment_requests")
@@ -18,6 +16,7 @@ function checkPaymentRequests({knex, yandexKassaService}) {
 
             //get status
             if (updatedStatus !== "pending") {
+                console.log(`New status update for ${payment_id}. New status: ${updatedStatus}`)
 
                 //succeeded or cancelled
                 switch (updatedStatus) {
