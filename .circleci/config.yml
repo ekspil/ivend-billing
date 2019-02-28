@@ -23,7 +23,8 @@ jobs:
             - node_modules
           key: v1-dependencies-{{ checksum "package.json" }}-{{ checksum "package-lock.json" }}
 
-  build_and_push_docker:
+
+  docker_push_tagged:
     docker:
       - image: docker:17.05.0-ce-git
 
@@ -35,11 +36,27 @@ jobs:
       - deploy:
           name: Push application Docker image
           command: |
-            docker build -t "registry.gitlab.com/pshenmic/ivend/billing" --cache-from registry.gitlab.com/pshenmic/ivend/billing .
+            docker build -t "registry.gitlab.com/pshenmic/ivend/billing:$CIRCLE_TAG" .
             docker login registry.gitlab.com -u "pshenmic" -p "$GITLAB_TOKEN"
-            docker push "registry.gitlab.com/pshenmic/ivend/billing"
+            docker push "registry.gitlab.com/pshenmic/ivend/billing:$CIRCLE_TAG"
 
-  deploy:
+  docker_push_develop:
+    docker:
+      - image: docker:17.05.0-ce-git
+
+    working_directory: ~/repo
+
+    steps:
+      - checkout
+      - setup_remote_docker
+      - deploy:
+          name: Push application Docker image
+          command: |
+            docker build -t "registry.gitlab.com/pshenmic/ivend/billing:develop" .
+            docker login registry.gitlab.com -u "pshenmic" -p "$GITLAB_TOKEN"
+            docker push "registry.gitlab.com/pshenmic/ivend/billing:develop"
+
+  deploy_develop:
     docker:
       - image: circleci/node:11.1.0
 
@@ -55,7 +72,7 @@ jobs:
 
       - run:
           name: Deploy
-          command: ssh root@$DEPLOY_SERVER 'source /opt/.env && cd /opt/billing && git pull && microk8s.kubectl replace --force -f kube-config.yml'
+          command: ssh root@$DEPLOY_SERVER 'source /opt/.env && cd /opt/billing && git checkout develop && git pull && microk8s.kubectl replace --force -f development-kube-config.yml'
 
 workflows:
   version: 2
@@ -67,18 +84,25 @@ workflows:
               only:
                 - master
                 - develop
-      - build_and_push_docker:
+      - docker_push_tagged:
           filters:
             branches:
-              only:
-                - master
+              ignore: /.*/
+            tags:
+              only: /.*/
           requires:
             - build
-      - deploy:
+      - docker_push_develop:
+          filters:
+            branches:
+              only: develop
+          requires:
+            - build
+      - deploy_develop:
           filters:
             branches:
               only:
-                - master
+                - develop
           requires:
-            - build_and_push_docker
-
+            - build
+            - docker_push_develop
