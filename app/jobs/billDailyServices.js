@@ -21,11 +21,11 @@ function billDailyServices({knex}) {
                     .where("controllers.user_id", userId)
                     .where({
                         "controllers.user_id": userId,
-                        "services.billingType": "DAILY"
+                        "services.billing_type": "DAILY",
+                        "users.role" : "USER"
                     })
                     .groupBy("controllers.user_id", "services.id", "controller_services.id", "controllers.id")
 
-                // Get his balance
                 for (const service of services) {
                     console.log(`Bill the User #${userId} for service #${service.id} [${service.name}, ControllerID ${service.controller_id}] for ${service.price} RUB`)
                     await knex("transactions")
