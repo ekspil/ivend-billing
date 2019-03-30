@@ -2,8 +2,8 @@ const cron = require("node-cron")
 
 const scheduleTasks = async ({knex, yandexKassaService}) => {
     const checkPaymentRequestsJob = require("../jobs/checkPaymentRequests")({knex, yandexKassaService})
-    const billDailyServices = require("../jobs/billDailyServices")({knex, yandexKassaService})
-    const checkForNegativeBalance = require("../jobs/checkForNegativeBalance")({knex, yandexKassaService})
+    const billMonthlyServicesForDay = require("../jobs/billMonthlyServicesForDay")({knex})
+    const checkForNegativeBalance = require("../jobs/checkForNegativeBalance")({knex})
 
     // Every minute
     cron.schedule("* * * * *", () => {
@@ -17,12 +17,12 @@ const scheduleTasks = async ({knex, yandexKassaService}) => {
 
     // Every day at 00:00
     cron.schedule("0 0 * * *", () => {
-        billDailyServices()
+        billMonthlyServicesForDay()
             .then(() => {
-                console.log("Successfully billed daily services")
+                console.log("Successfully billed monthly services for current day")
             })
             .catch((e) => {
-                console.error("Failed to bill DAILY services")
+                console.error("Failed to bill MONTHLY services for current day")
                 console.error(e)
                 //TODO notificate
             })

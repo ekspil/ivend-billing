@@ -1,4 +1,4 @@
-function billDailyServices({knex}) {
+function billMonthlyServicesForDay({knex}) {
     return async () => {
         return knex.transaction(async (trx) => {
             console.log(`Starting billServices job at ${new Date()}`)
@@ -21,13 +21,27 @@ function billDailyServices({knex}) {
                     .where("controllers.user_id", userId)
                     .where({
                         "controllers.user_id": userId,
-                        "services.billing_type": "DAILY",
-                        "users.role" : "USER"
+                        "services.billing_type": "MONTHLY",
+                        "users.role": "USER"
                     })
                     .groupBy("controllers.user_id", "services.id", "controller_services.id", "controllers.id")
 
                 for (const service of services) {
-                    console.log(`Bill the User #${userId} for service #${service.id} [${service.name}, ControllerID ${service.controller_id}] for ${service.price} RUB`)
+                    //counting price
+
+                    const daysInMonthResult = await knex.raw("SELECT DATE_PART('days',  DATE_TRUNC('month', NOW())  + '1 MONTH'::INTERVAL  - '1 DAY'::INTERVAL)")
+                    const [datePart] = daysInMonthResult.rows
+                    const daysInMonth = datePart.date_part
+
+                    // Price / DaysInMonth
+                    const dayPriceResult = await knex.raw("SELECT ROUND(:price::NUMERIC / :days::NUMERIC, 2) as day_price", {
+                        price: service.price,
+                        days: daysInMonth
+                    })
+                    const [dayPricePart] = dayPriceResult.rows
+                    const dayPrice = dayPricePart.day_price
+
+                    console.log(`Bill the User #${userId} for service #${service.id} [${service.name}, ControllerID ${service.controller_id}] for ${dayPrice} RUB`)
                     await knex("transactions")
                         .transacting(trx)
                         .insert({
@@ -45,4 +59,4 @@ function billDailyServices({knex}) {
 }
 
 
-module.exports = billDailyServices
+module.exports = billMonthlyServicesForDay
