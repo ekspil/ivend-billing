@@ -45,7 +45,7 @@ function billMonthlyServicesForDay({knex}) {
                     await knex("transactions")
                         .transacting(trx)
                         .insert({
-                            amount: -service.price,
+                            amount: -dayPrice,
                             user_id: service.user_id,
                             meta: `${service.name.toLowerCase()}_${service.id}_${service.controller_id}`,
                             created_at: new Date(),
