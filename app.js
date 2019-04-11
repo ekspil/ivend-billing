@@ -11,9 +11,9 @@ const knex = require("knex")({
         host: process.env.POSTGRES_HOST,
         user: process.env.POSTGRES_USER,
         password: process.env.POSTGRES_PASSWORD,
-        database: process.env.POSTGRES_DB
-    },
-    ssl: true
+        database: process.env.POSTGRES_DB,
+        ssl: true
+    }
 })
 
 const yandexKassaService = new YandexKassaService()
