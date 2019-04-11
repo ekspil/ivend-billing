@@ -39,8 +39,13 @@ function Routes({fastify, knex, yandexKassaService}) {
         }
     }
 
+    const status = async (request, reply) => {
+        reply.type("application/json").code(200)
+        return {health: "OK"}
+    }
 
     fastify.post("/api/v1/billing/createPayment", createPayment)
+    fastify.post("/api/v1/status", status)
 
 }
 
