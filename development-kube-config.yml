@@ -7,6 +7,11 @@ metadata:
     app: billing
 spec:
   replicas: 1
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 50%
+      maxSurge: 50%
   selector:
     matchLabels:
       app: billing
@@ -18,10 +23,18 @@ spec:
     spec:
       containers:
       - name: billing
-        image: registry.gitlab.com/pshenmic/ivend/billing:develop
+        image: registry.gitlab.com/pshenmic/ivend/billing:$CIRCLE_SHA1
         imagePullPolicy: Always
         ports:
-        - containerPort: 3500
+          - containerPort: 3500
+        readinessProbe:
+          httpGet:
+            path: /api/v1/status
+            port: 3500
+          initialDelaySeconds: 30
+          periodSeconds: 5
+          successThreshold: 1
+          failureThreshold: 3
         envFrom:
           - configMapRef:
               name: billing-config
