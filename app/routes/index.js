@@ -45,7 +45,7 @@ function Routes({fastify, knex, yandexKassaService}) {
     }
 
     fastify.post("/api/v1/billing/createPayment", createPayment)
-    fastify.post("/api/v1/status", status)
+    fastify.get("/api/v1/status", status)
 
 }
 
