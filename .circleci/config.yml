@@ -52,9 +52,9 @@ jobs:
       - deploy:
           name: Push application Docker image
           command: |
-            docker build -t "registry.gitlab.com/pshenmic/ivend/billing:develop" .
+            docker build -t "registry.gitlab.com/pshenmic/ivend/billing:$CIRCLE_SHA1" .
             docker login registry.gitlab.com -u "pshenmic" -p "$GITLAB_TOKEN"
-            docker push "registry.gitlab.com/pshenmic/ivend/billing:develop"
+            docker push "registry.gitlab.com/pshenmic/ivend/billing:$CIRCLE_SHA1"
 
   deploy_develop:
     docker:
@@ -66,13 +66,19 @@ jobs:
       - add_ssh_keys:
           fingerprints:
             - "49:d0:99:ae:33:c3:33:11:f9:5c:9e:85:44:90:2b:78"
-      - run:
-          name: Keyscan deploy server
-          command: ssh-keyscan -H $DEPLOY_SERVER >> ~/.ssh/known_hosts
 
       - run:
           name: Deploy
-          command: ssh root@$DEPLOY_SERVER 'source /opt/.env && cd /opt/billing && git checkout develop && git pull && microk8s.kubectl replace --force -f development-kube-config.yml'
+          command: |
+            ssh-keyscan -H $DEPLOY_SERVER >> ~/.ssh/known_hosts &&
+            echo "CIRCLE_SHA1=$CIRCLE_SHA1" > ./sshenv &&
+            scp ./sshenv root@$DEPLOY_SERVER:~/.ssh/environment &&
+            ssh root@$DEPLOY_SERVER 'source /opt/.env && \
+            cd /opt/billing && \
+            git checkout develop && \
+            git pull && \
+            envsubst < development-kube-config.yml > /tmp/development-kube-config.yml.patched && \
+            microk8s.kubectl apply -f /tmp/development-kube-config.yml.patched'
 
 workflows:
   version: 2
