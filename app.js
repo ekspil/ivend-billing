@@ -19,9 +19,7 @@ const knex = require("knex")({
 const yandexKassaService = new YandexKassaService()
 
 
-const fastify = require("fastify")({
-    logger: true
-})
+const fastify = require("fastify")({})
 
 const Routes = require("./app/routes")
 Routes({fastify, knex, yandexKassaService})
@@ -29,6 +27,7 @@ Routes({fastify, knex, yandexKassaService})
 scheduler.scheduleTasks({knex, yandexKassaService})
 
 fastify.listen(3500, "0.0.0.0", (err) => {
+    console.log("Server started on port 3500")
     if (err) throw err
 })
 
