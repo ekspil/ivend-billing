@@ -19,7 +19,7 @@ class YandexKassaService {
             },
             "confirmation": {
                 "type": "redirect",
-                "return_url": "https://panel.p-factory.ru"
+                "return_url": process.env.YANDEX_KASSA_RETURN_URL
             },
             "capture": true
         }, idempotenceKey)
