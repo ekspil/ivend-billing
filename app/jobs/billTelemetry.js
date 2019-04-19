@@ -1,5 +1,3 @@
-const TELEMETRY_PRICE = 100
-
 function billTelemetry({knex}) {
     return async () => {
         return knex.transaction(async (trx) => {
@@ -15,7 +13,7 @@ function billTelemetry({knex}) {
 
                 const [dayPriceResult] = (await knex
                     .raw("SELECT ROUND(:price::NUMERIC / (SELECT DATE_PART('days',  DATE_TRUNC('month', NOW())  + '1 MONTH'::INTERVAL  - '1 DAY'::INTERVAL))::numeric, 2) as day_price, controllers.user_id, controllers.status, controllers.id FROM controllers", {
-                        price: TELEMETRY_PRICE,
+                        price: process.env.TELEMETRY_PRICE,
                     })
                     .transacting(trx)).rows
 

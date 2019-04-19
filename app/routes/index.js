@@ -44,8 +44,27 @@ function Routes({fastify, knex, yandexKassaService}) {
         return {health: "OK"}
     }
 
+    const servicePriceDaily = async (request, reply) => {
+        const {service} = request.params
+
+        if (service !== "TELEMETRY") {
+            return reply.type("application/json").code(404).send({message: "Not found"})
+        }
+
+        const [dayPriceResult] = (await knex
+            .raw("SELECT ROUND(:price::NUMERIC / (SELECT DATE_PART('days',  DATE_TRUNC('month', NOW())  + '1 MONTH'::INTERVAL  - '1 DAY'::INTERVAL))::numeric, 2) as day_price", {
+                price: process.env.TELEMETRY_PRICE,
+            })).rows
+
+        const dayPrice = dayPriceResult.day_price
+
+        reply.type("application/json").code(200)
+        return {price: Number(dayPrice)}
+    }
+
     fastify.post("/api/v1/billing/createPayment", createPayment)
     fastify.get("/api/v1/status", status)
+    fastify.get("/api/v1/service/:service/price/daily", servicePriceDaily)
 
 }
 

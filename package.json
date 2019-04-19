@@ -9,6 +9,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "dotenv": "^7.0.0",
     "fastify": "^1.14.1",
     "fetch": "^1.1.0",
     "knex": "^0.16.3",

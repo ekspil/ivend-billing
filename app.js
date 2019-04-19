@@ -1,3 +1,5 @@
+require("dotenv").config()
+
 if (!process.env.YANDEX_SHOP_ID || !process.env.YANDEX_SECRET_KEY || !process.env.YANDEX_RETURN_URL) {
     throw new Error("YANDEX_SHOP_ID or YANDEX_SECRET_KEY or YANDEX_RETURN_URL env is not set")
 }
