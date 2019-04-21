@@ -6,7 +6,7 @@ function billTelemetry({knex}) {
             const users = await knex("users")
                 .transacting(trx)
                 .select("id")
-                .where("role", "USER")
+                .where("role", "VENDOR")
 
             for (const user of users) {
                 const userId = user.id
@@ -26,7 +26,7 @@ function billTelemetry({knex}) {
                     .where({
                         "controllers.user_id": userId,
                         "controllers.status": "ENABLED",
-                        "users.role": "USER"
+                        "users.role": "VENDOR"
                     })
                     .groupBy("controllers.id", "controllers.user_id")
 
