@@ -45,21 +45,28 @@ function Routes({fastify, knex, yandexKassaService}) {
     }
 
     const servicePriceDaily = async (request, reply) => {
-        const {service} = request.params
+        try {
+            const {service} = request.params
 
-        if (service !== "TELEMETRY") {
-            return reply.type("application/json").code(404).send({message: "Not found"})
+            if (service !== "TELEMETRY") {
+                return reply.type("application/json").code(404).send({message: "Not found"})
+            }
+
+            const [dayPriceResult] = (await knex
+                .raw("SELECT ROUND(:price::NUMERIC / (SELECT DATE_PART('days',  DATE_TRUNC('month', NOW())  + '1 MONTH'::INTERVAL  - '1 DAY'::INTERVAL))::numeric, 2) as day_price", {
+                    price: process.env.TELEMETRY_PRICE,
+                })).rows
+
+            const dayPrice = dayPriceResult.day_price
+
+            reply.type("application/json").code(200)
+            return {price: Number(dayPrice)}
+        } catch (e) {
+            console.error(e)
+            console.error(e.stack)
+            reply.type("application/json").code(500)
+            return {}
         }
-
-        const [dayPriceResult] = (await knex
-            .raw("SELECT ROUND(:price::NUMERIC / (SELECT DATE_PART('days',  DATE_TRUNC('month', NOW())  + '1 MONTH'::INTERVAL  - '1 DAY'::INTERVAL))::numeric, 2) as day_price", {
-                price: process.env.TELEMETRY_PRICE,
-            })).rows
-
-        const dayPrice = dayPriceResult.day_price
-
-        reply.type("application/json").code(200)
-        return {price: Number(dayPrice)}
     }
 
     fastify.post("/api/v1/billing/createPayment", createPayment)
