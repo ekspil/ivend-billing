@@ -54,7 +54,7 @@ function Routes({fastify, knex, yandexKassaService}) {
 
             const [dayPriceResult] = (await knex
                 .raw("SELECT ROUND(:price::NUMERIC / (SELECT DATE_PART('days',  DATE_TRUNC('month', NOW())  + '1 MONTH'::INTERVAL  - '1 DAY'::INTERVAL))::numeric, 2) as day_price", {
-                    price: process.env.TELEMETRY_PRICE,
+                    price: Number(process.env.TELEMETRY_PRICE),
                 })).rows
 
             const dayPrice = dayPriceResult.day_price
