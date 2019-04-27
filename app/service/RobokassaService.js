@@ -47,7 +47,7 @@ class RobokassaService {
             .insert({
                 payment_id: paymentId,
                 redirect_url: redirectUrl,
-                status: "PENDING",
+                status: "pending",
                 to,
                 created_at: new Date(),
                 updated_at: new Date()
