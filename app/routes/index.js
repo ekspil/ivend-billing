@@ -1,36 +1,49 @@
-const uuidv4 = require("uuid/v4")
 const ErrorHandler = require("./error/ErrorHandler")
 
-function Routes({fastify, knex, yandexKassaService}) {
-
+function Routes({fastify, knex, robokassaService}) {
     const createPayment = async (request, reply) => {
-        const idempotenceKey = uuidv4()
+        const {amount, to, email} = request.body
 
-        const {amount, to} = request.body
+        const {paymentRequestId} = await robokassaService.requestPayment(to, email, amount)
 
-        const payment = await yandexKassaService.requestPayment(amount, idempotenceKey)
-        const {confirmation_url} = payment.confirmation
-        const {id, status} = payment
-
-
-        const [paymentRequestId] = await knex("payment_requests")
-            .returning("id")
-            .insert({
-                payment_id: id,
-                idempotence_key: idempotenceKey,
-                redirect_url: confirmation_url,
-                status,
-                to,
-                created_at: new Date(),
-                updated_at: new Date()
-            })
-
-
-        reply.type("application/json").code(200)
-        return {
+        return reply.type("application/json").code(200).send({
             paymentRequestId
+        })
+    }
+
+    const robokassaCallback = async (request, reply) => {
+        const {OutSum, InvId, SignatureValue} = request.body
+
+        console.log("robokassaCallback " + JSON.stringify({OutSum, InvId, SignatureValue}))
+
+        if (!this.robokassaService.validateResultUrl(SignatureValue, OutSum, InvId)) {
+            throw new Error("SignatureValidationError")
         }
 
+        const robopaymentStatus = await this.robokassaService.getPayment(InvId)
+
+
+        return reply.type("application/json").code(200).send({message: "Okay"})
+    }
+
+    const robokassaSuccessResult = async (request, reply) => {
+        console.log("robokassaSuccessResult" + JSON.stringify(request.body))
+        const {OutSum, InvId, SignatureValue} = request.body
+
+        /*
+                if(!this.robokassaService.validateResultUrl(SignatureValue, OutSum, InvId)) {
+                    throw new Error("SignatureValidationError")
+                }
+        */
+
+        return reply.type("application/json").code(200).send({message: "Okay"})
+    }
+
+    const robokassaFailResult = async (request, reply) => {
+        console.log("robokassaFailResult" + JSON.stringify(request.body))
+        const {OutSum, InvId, SignatureValue} = request.body
+
+        return reply.type("application/json").code(200).send({message: "Okay"})
     }
 
     const status = async (request, reply) => {
@@ -59,6 +72,11 @@ function Routes({fastify, knex, yandexKassaService}) {
     fastify.post("/api/v1/billing/createPayment", createPayment)
     fastify.get("/api/v1/status", status)
     fastify.get("/api/v1/service/:service/price/daily", servicePriceDaily)
+
+    fastify.post("/api/v1/callback/robokassa", robokassaCallback)
+    fastify.post("/api/v1/callback/robokassa/success", robokassaSuccessResult)
+    fastify.post("/api/v1/callback/robokassa/fail", robokassaFailResult)
+
 
     fastify.setErrorHandler(ErrorHandler)
 

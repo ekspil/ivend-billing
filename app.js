@@ -5,6 +5,7 @@ if (!process.env.YANDEX_SHOP_ID || !process.env.YANDEX_SECRET_KEY || !process.en
 }
 
 const YandexKassaService = require("./app/service/YandexKassaService")
+const RobokassaService = require("./app/service/RobokassaService")
 const scheduler = require("./app/utils/scheduler")
 
 const knex = require("knex")({
@@ -19,12 +20,13 @@ const knex = require("knex")({
 })
 
 const yandexKassaService = new YandexKassaService()
+const robokassaService = new RobokassaService({knex})
 
 
 const fastify = require("fastify")({})
 
 const Routes = require("./app/routes")
-Routes({fastify, knex, yandexKassaService})
+Routes({fastify, knex, yandexKassaService, robokassaService})
 
 scheduler.scheduleTasks({knex, yandexKassaService})
 
