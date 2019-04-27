@@ -13,14 +13,17 @@ function Routes({fastify, knex, robokassaService}) {
 
     const robokassaCallback = async (request, reply) => {
         console.log("robokassaCallback " + JSON.stringify(request.body))
-        //const {OutSum, InvId, SignatureValue} = request.body
 
-       /* if (!this.robokassaService.validateResultUrl(SignatureValue, OutSum, InvId)) {
+        const {OutSum, InvId, SignatureValue} = request.body
+        console.log({OutSum, InvId, SignatureValue})
+
+        if (!this.robokassaService.validateResultUrl(SignatureValue, OutSum, InvId)) {
             throw new Error("SignatureValidationError")
         }
 
-        const robopaymentStatus = await this.robokassaService.getPayment(InvId)*/
+        const robopaymentStatus = await this.robokassaService.getPayment(InvId)
 
+        console.log(robopaymentStatus)
 
         return reply.type("application/json").code(200).send({message: "Okay"})
     }
