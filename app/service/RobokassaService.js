@@ -70,7 +70,7 @@ class RobokassaService {
             },
             body: JSON.stringify({
                 MerchantLogin: process.env.ROBOKASSA_LOGIN,
-                InvoiceId: `bcc07cce-1ad9-42e6-801b-830527a9a7f9`,
+                InvoiceId: paymentId,
                 Signature: this.robokassa.calculateHash(`${process.env.ROBOKASS_LOGIN}:${paymentId}:${this.robokassa.password2}`)
             })
         })
@@ -88,6 +88,7 @@ class RobokassaService {
                 }
             })
         })
+
         const {Result} = json.OperationStateResponse
         const [resultObj] = Result
 
@@ -99,6 +100,11 @@ class RobokassaService {
         console.log(`paymentId ${paymentId} code ${code} description ${description}`)
 
         switch (code) {
+            case "0":
+                const {State} = json.OperationStateResponse
+                const [stateObj] = State
+
+                return json.OperationStateResponse.State[0]
             case "3":
                 return null
             default:
