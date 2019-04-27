@@ -12,15 +12,14 @@ function Routes({fastify, knex, robokassaService}) {
     }
 
     const robokassaCallback = async (request, reply) => {
-        const {OutSum, InvId, SignatureValue} = request.body
+        console.log("robokassaCallback " + JSON.stringify(request.body))
+        //const {OutSum, InvId, SignatureValue} = request.body
 
-        console.log("robokassaCallback " + JSON.stringify({OutSum, InvId, SignatureValue}))
-
-        if (!this.robokassaService.validateResultUrl(SignatureValue, OutSum, InvId)) {
+       /* if (!this.robokassaService.validateResultUrl(SignatureValue, OutSum, InvId)) {
             throw new Error("SignatureValidationError")
         }
 
-        const robopaymentStatus = await this.robokassaService.getPayment(InvId)
+        const robopaymentStatus = await this.robokassaService.getPayment(InvId)*/
 
 
         return reply.type("application/json").code(200).send({message: "Okay"})
@@ -28,7 +27,6 @@ function Routes({fastify, knex, robokassaService}) {
 
     const robokassaSuccessResult = async (request, reply) => {
         console.log("robokassaSuccessResult" + JSON.stringify(request.body))
-        const {OutSum, InvId, SignatureValue} = request.body
 
         /*
                 if(!this.robokassaService.validateResultUrl(SignatureValue, OutSum, InvId)) {
@@ -41,7 +39,6 @@ function Routes({fastify, knex, robokassaService}) {
 
     const robokassaFailResult = async (request, reply) => {
         console.log("robokassaFailResult" + JSON.stringify(request.body))
-        const {OutSum, InvId, SignatureValue} = request.body
 
         return reply.type("application/json").code(200).send({message: "Okay"})
     }
@@ -68,6 +65,8 @@ function Routes({fastify, knex, robokassaService}) {
         reply.type("application/json").code(200)
         return {price: Number(dayPrice)}
     }
+
+    fastify.register(require("fastify-formbody"))
 
     fastify.post("/api/v1/billing/createPayment", createPayment)
     fastify.get("/api/v1/status", status)
