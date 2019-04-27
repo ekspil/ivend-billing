@@ -75,9 +75,9 @@ function Routes({fastify, knex, robokassaService}) {
     fastify.get("/api/v1/status", status)
     fastify.get("/api/v1/service/:service/price/daily", servicePriceDaily)
 
-    fastify.post("/api/v1/callback/robokassa/result", robokassaCallback)
-    fastify.post("/api/v1/callback/robokassa/result/sucesss", robokassaSuccessResult)
-    fastify.post("/api/v1/callback/robokassa/result/fail", robokassaFailResult)
+    fastify.post("/api/v1/callback/robokassa", robokassaCallback)
+    fastify.post("/api/v1/callback/robokassa/sucesss", robokassaSuccessResult)
+    fastify.post("/api/v1/callback/robokassa/fail", robokassaFailResult)
 
 
     fastify.setErrorHandler(ErrorHandler)
