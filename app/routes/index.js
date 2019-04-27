@@ -21,7 +21,7 @@ function Routes({fastify, knex, robokassaService}) {
             throw new Error("SignatureValidationError")
         }
 
-        const robopaymentStatus = await robokassaService.getPayment(InvId)
+        const robopaymentStatus = await robokassaService.getPayment(Number(InvId))
 
         console.log(robopaymentStatus)
 
