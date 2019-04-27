@@ -63,7 +63,7 @@ class RobokassaService {
     }
 
     async getPayment(paymentId) {
-        const url = `https://auth.robokassa.ru/Merchant/WebService/Service.asmx/MerchantLogin=${process.env.ROBOKASSA_LOGIN}&InvoiceID=${paymentId}&Signature=${this.robokassa.calculateHash(`${process.env.ROBOKASS_LOGIN}:${paymentId}:${this.robokassa.password2}`)}`
+        const url = `https://auth.robokassa.ru/Merchant/WebService/Service.asmx/OpState?MerchantLogin=${process.env.ROBOKASSA_LOGIN}&InvoiceID=${paymentId}&Signature=${this.robokassa.calculateHash(`${process.env.ROBOKASS_LOGIN}:${paymentId}:${this.robokassa.password2}`)}`
 
         console.log("fetching " + url)
         const response = await fetch(url)
