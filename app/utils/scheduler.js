@@ -5,16 +5,6 @@ const scheduleTasks = async ({knex, yandexKassaService}) => {
     const billTelemetry = require("../jobs/billTelemetry")({knex})
     const checkForNegativeBalance = require("../jobs/checkForNegativeBalance")({knex})
 
-    // Every minute
-    cron.schedule("* * * * *", () => {
-        checkPaymentRequestsJob()
-            .catch((e) => {
-                console.error("Failed to check payment requests for updated statuses")
-                console.error(e)
-                //TODO notificate
-            })
-    })
-
     // Every day at 00:00
     cron.schedule("0 0 * * *", () => {
         billTelemetry()
