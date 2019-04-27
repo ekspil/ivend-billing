@@ -1,6 +1,6 @@
 const robokassa = require("node-robokassa")
 const fetch = require("node-fetch")
-const parseString = require('xml2js').parseString;
+const parseString = require("xml2js").parseString
 
 class RobokassaService {
 
@@ -63,17 +63,10 @@ class RobokassaService {
     }
 
     async getPayment(paymentId) {
-        const response = await fetch("https://auth.robokassa.ru/Merchant/WebService/Service.asmx/OpState", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-                MerchantLogin: process.env.ROBOKASSA_LOGIN,
-                InvoiceId: paymentId,
-                Signature: this.robokassa.calculateHash(`${process.env.ROBOKASS_LOGIN}:${paymentId}:${this.robokassa.password2}`)
-            })
-        })
+        const url = `https://auth.robokassa.ru/Merchant/WebService/Service.asmx/MerchantLogin=${process.env.ROBOKASSA_LOGIN}&InvoiceID=${paymentId}&Signature=${this.robokassa.calculateHash(`${process.env.ROBOKASS_LOGIN}:${paymentId}:${this.robokassa.password2}`)}`
+
+        console.log("fetching " + url)
+        const response = await fetch(url)
 
         const xml = await response.text()
 
@@ -107,6 +100,8 @@ class RobokassaService {
                 return json.OperationStateResponse.State[0]
             case "3":
                 return null
+            case "1":
+                throw new Error("SignatureValidationError")
             default:
                 throw new Error("RobokassaUnknownCode")
         }
