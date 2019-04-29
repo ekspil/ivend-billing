@@ -23,7 +23,7 @@ spec:
     spec:
       containers:
       - name: billing
-        image: registry.gitlab.com/pshenmic/ivend/billing:1.0.0
+        image: registry.gitlab.com/pshenmic/ivend/billing:1.0.1
         imagePullPolicy: Always
         ports:
           - containerPort: 3500
