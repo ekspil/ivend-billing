@@ -2,6 +2,7 @@ const robokassa = require("node-robokassa")
 const fetch = require("node-fetch")
 const parseString = require("xml2js").parseString
 const hashingUtils = require("../utils/hashingUtils")
+const PaymentStatus = require("../enums/PaymentStatus")
 
 class RobokassaService {
 
@@ -57,7 +58,7 @@ class RobokassaService {
             .insert({
                 payment_id: paymentId,
                 redirect_url: redirectUrl,
-                status: "pending",
+                status: PaymentStatus.PENDING,
                 to,
                 created_at: new Date(),
                 updated_at: new Date()
