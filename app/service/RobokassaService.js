@@ -26,7 +26,10 @@ class RobokassaService {
     }
 
     verifySignature(OutSum, InvId, SignatureValue) {
-        return hashingUtils.hashSHA256(`${OutSum}:${InvId}:${this.robokassa.password2}`) === SignatureValue
+        return OutSum && InvId && SignatureValue &&
+            hashingUtils
+                .hashSHA256(`${OutSum}:${InvId}:${this.robokassa.password2}`)
+                .toLowerCase() === SignatureValue.toLowerCase()
     }
 
     async requestPayment(to, email, amount) {
