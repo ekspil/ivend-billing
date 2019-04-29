@@ -1,28 +1,17 @@
 const cron = require("node-cron")
 
-const scheduleTasks = async ({knex, yandexKassaService}) => {
-    const checkPaymentRequestsJob = require("../jobs/checkPaymentRequests")({knex, yandexKassaService})
-    const billDailyServices = require("../jobs/billDailyServices")({knex, yandexKassaService})
-    const checkForNegativeBalance = require("../jobs/checkForNegativeBalance")({knex, yandexKassaService})
-
-    // Every minute
-    cron.schedule("* * * * *", () => {
-        checkPaymentRequestsJob()
-            .catch((e) => {
-                console.error("Failed to check payment requests for updated statuses")
-                console.error(e)
-                //TODO notificate
-            })
-    })
+const scheduleTasks = async ({knex}) => {
+    const billTelemetry = require("../jobs/billTelemetry")({knex})
+    const checkForNegativeBalance = require("../jobs/checkForNegativeBalance")({knex})
 
     // Every day at 00:00
     cron.schedule("0 0 * * *", () => {
-        billDailyServices()
+        billTelemetry()
             .then(() => {
-                console.log("Successfully billed daily services")
+                console.log("Successfully billed telemetry for current day")
             })
             .catch((e) => {
-                console.error("Failed to bill DAILY services")
+                console.error("Failed to bill telemetry for current day")
                 console.error(e)
                 //TODO notificate
             })

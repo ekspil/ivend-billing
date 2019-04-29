@@ -1,8 +1,6 @@
-if (!process.env.YANDEX_SHOP_ID || !process.env.YANDEX_SECRET_KEY) {
-    throw new Error("YANDEX_SHOP_ID or YANDEX_SECRET_KEY env is not set")
-}
+require("dotenv").config()
 
-const YandexKassaService = require("./app/service/YandexKassaService")
+const RobokassaService = require("./app/service/RobokassaService")
 const scheduler = require("./app/utils/scheduler")
 
 const knex = require("knex")({
@@ -11,23 +9,23 @@ const knex = require("knex")({
         host: process.env.POSTGRES_HOST,
         user: process.env.POSTGRES_USER,
         password: process.env.POSTGRES_PASSWORD,
-        database: process.env.POSTGRES_DB
+        database: process.env.POSTGRES_DB,
+        ssl: true
     }
 })
 
-const yandexKassaService = new YandexKassaService()
+const robokassaService = new RobokassaService({knex})
 
 
-const fastify = require("fastify")({
-    logger: true
-})
+const fastify = require("fastify")({})
 
 const Routes = require("./app/routes")
-Routes({fastify, knex, yandexKassaService})
+Routes({fastify, knex, robokassaService})
 
-scheduler.scheduleTasks({knex, yandexKassaService})
+scheduler.scheduleTasks({knex})
 
 fastify.listen(3500, "0.0.0.0", (err) => {
+    console.log("Server started on port 3500")
     if (err) throw err
 })
 

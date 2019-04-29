@@ -6,7 +6,7 @@ function billDailyServices({knex}) {
             const users = await knex("users")
                 .transacting(trx)
                 .select("id")
-                .where("role", "USER")
+                .where("role", "VENDOR_NEGATIVE_BALANCE")
 
             for (const user of users) {
 
@@ -54,7 +54,7 @@ function billDailyServices({knex}) {
                             await knex("users")
                                 .transacting(trx)
                                 .where({id: user.id})
-                                .update({role: "USER_LOCKED_NEGATIVE_BALANCE"})
+                                .update({role: "VENDOR_NEGATIVE_BALANCE"})
 
                         }
                     }

@@ -2,7 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: billing
-  namespace: development
+  namespace: production
   labels:
     app: billing
 spec:
@@ -17,13 +17,13 @@ spec:
       app: billing
   template:
     metadata:
-      namespace: development
+      namespace: production
       labels:
         app: billing
     spec:
       containers:
       - name: billing
-        image: registry.gitlab.com/pshenmic/ivend/billing:$CIRCLE_SHA1
+        image: registry.gitlab.com/pshenmic/ivend/billing:1.0.0
         imagePullPolicy: Always
         ports:
           - containerPort: 3500
