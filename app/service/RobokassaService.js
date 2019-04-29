@@ -68,10 +68,6 @@ class RobokassaService {
         return {paymentRequestId}
     }
 
-    validateResultUrl(hash, outSum, invId) {
-        return this.robokassa.validateResultUrlHash(hash, outSum, invId)
-    }
-
     async getPayment(paymentId) {
         const url = `https://auth.robokassa.ru/Merchant/WebService/Service.asmx/OpState?MerchantLogin=${process.env.ROBOKASSA_LOGIN}&InvoiceID=${paymentId}&Signature=${hashingUtils.hashSHA256(`${process.env.ROBOKASS_LOGIN}:${paymentId}:${this.robokassa.password2}`)}`
 
