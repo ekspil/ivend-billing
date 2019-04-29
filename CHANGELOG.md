@@ -10,3 +10,8 @@
 # 1.0.2 - Hotfix
 
 * Robokassa - pass isTest depends on NODE_ENV
+
+
+# 1.0.3 - Hotfix
+
+* Robokassa - flip the isTest condition
