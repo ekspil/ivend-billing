@@ -23,6 +23,7 @@ class RobokassaService {
 
         this.requestPayment = this.requestPayment.bind(this)
         this.getPayment = this.getPayment.bind(this)
+        this.verifySignature = this.verifySignature.bind(this)
     }
 
     verifySignature(OutSum, InvId, SignatureValue) {
