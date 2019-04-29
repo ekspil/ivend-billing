@@ -28,7 +28,7 @@ class RobokassaService {
     verifySignature(OutSum, InvId, SignatureValue) {
         const hash = hashingUtils
             .hashSHA256(`${OutSum}:${InvId}:${this.robokassa.password2}`)
-        console.log(OutSum, InvId, hash, SignatureValue)
+        console.log(OutSum, InvId, this.robokassa.password2, hash, SignatureValue)
 
         return OutSum && InvId && SignatureValue && hash.toLowerCase() === SignatureValue.toLowerCase()
     }
