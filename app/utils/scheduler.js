@@ -1,7 +1,6 @@
 const cron = require("node-cron")
 
-const scheduleTasks = async ({knex, yandexKassaService}) => {
-    const checkPaymentRequestsJob = require("../jobs/checkPaymentRequests")({knex, yandexKassaService})
+const scheduleTasks = async ({knex}) => {
     const billTelemetry = require("../jobs/billTelemetry")({knex})
     const checkForNegativeBalance = require("../jobs/checkForNegativeBalance")({knex})
 
