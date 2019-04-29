@@ -17,7 +17,7 @@ class RobokassaService {
             password2: process.env.ROBOKASSA_PASSWORD2,
 
             // OPTIONAL CONFIGURATION
-            testMode: true, // Whether to use test mode globally
+            testMode: process.env.NODE_ENV === "production", // Whether to use test mode globally
             resultUrlRequestMethod: "POST" // HTTP request method selected for "ResultURL" requests
 
         })
