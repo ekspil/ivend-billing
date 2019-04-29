@@ -14,6 +14,16 @@ const ErrorHandler = (error, request, reply) => {
         return reply.type("application/json").code(500).send({message: "Internal Server Error"})
     }
 
+    if (error.message === "PaymentRequestNotFound") {
+        console.error("Payment request not found")
+        return reply.type("application/json").code(500).send({message: "Internal Server Error"})
+    }
+
+    if (error.message === "DepositNotFound") {
+        console.error("Deposit not found")
+        return reply.type("application/json").code(500).send({message: "Internal Server Error"})
+    }
+
     console.error(error)
     return reply.type("application/json").code(500).send({message: "Internal Server Error"})
 }

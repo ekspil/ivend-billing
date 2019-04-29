@@ -22,9 +22,34 @@ function Routes({fastify, knex, robokassaService}) {
             throw new Error("SignatureValidationError")
         }
 
-        await knex("payment_requests")
-            .where({payment_id: Number(InvId)})
-            .update({status: PaymentStatus.SUCCEEDED})
+        await knex.transaction(async (trx) => {
+            const paymentRequest = await knex("payment_requests").where({payment_id: InvId}).transacting(trx).first()
+
+            if (!paymentRequest) {
+                throw new Error("PaymentRequestNotFound")
+            }
+
+            const deposit = await knex("deposits").where({payment_request_id: paymentRequest.id}).transacting(trx).first()
+
+            if (!deposit) {
+                throw new Error("DepositNotFound")
+            }
+
+            await knex("transactions")
+                .transacting(trx)
+                .insert({
+                    amount: deposit.amount,
+                    user_id: deposit.user_id,
+                    meta: `deposit_${deposit.id}`,
+                    created_at: new Date(),
+                    updated_at: new Date()
+                })
+
+            await knex("payment_requests")
+                .where({payment_id: Number(InvId)})
+                .update({status: PaymentStatus.SUCCEEDED})
+                .transacting(trx)
+        })
 
         return reply.type("application/json").code(200).send({message: "Okay"})
     }
