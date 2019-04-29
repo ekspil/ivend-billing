@@ -1,4 +1,5 @@
 const ErrorHandler = require("./error/ErrorHandler")
+const PaymentStatus = require("../enums/PaymentStatus")
 
 function Routes({fastify, knex, robokassaService}) {
     const createPayment = async (request, reply) => {
@@ -21,9 +22,9 @@ function Routes({fastify, knex, robokassaService}) {
             throw new Error("SignatureValidationError")
         }
 
-        const robopaymentStatus = await robokassaService.getPayment(Number(InvId))
-
-        console.log(robopaymentStatus)
+        await knex("payment_requests")
+            .where({payment_id: Number(InvId)})
+            .update({status: PaymentStatus.SUCCEEDED})
 
         return reply.type("application/json").code(200).send({message: "Okay"})
     }
