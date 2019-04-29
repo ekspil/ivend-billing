@@ -29,21 +29,13 @@ function Routes({fastify, knex, robokassaService}) {
     }
 
     const robokassaSuccessResult = async (request, reply) => {
-        console.log("robokassaSuccessResult" + JSON.stringify(request.body))
-
-        /*
-                if(!this.robokassaService.validateResultUrl(SignatureValue, OutSum, InvId)) {
-                    throw new Error("SignatureValidationError")
-                }
-        */
-
-        return reply.type("application/json").code(200).send({message: "Okay"})
+        //{"inv_id":"9","InvId":"9","out_summ":"10","OutSum":"10","crc":"a173852e25b9b8374a88c0b210335402b472bbc97d9d3b54e31fe39c96022c05","SignatureValue":"a173852e25b9b8374a88c0b210335402b472bbc97d9d3b54e31fe39c96022c05","Culture":"ru","IsTest":"1"}
+        return reply.redirect(302, `${process.env.FRONTEND_URL}/billing?from=robokassa&paid=true`)
     }
 
     const robokassaFailResult = async (request, reply) => {
-        console.log("robokassaFailResult" + JSON.stringify(request.body))
-
-        return reply.type("application/json").code(200).send({message: "Okay"})
+        //{"inv_id":"8","InvId":"8","out_summ":"10","OutSum":"10","Culture":"ru","IsTest":"1"}
+        return reply.redirect(302, `${process.env.FRONTEND_URL}/billing?from=robokassa&paid=false`)
     }
 
     const status = async (request, reply) => {
