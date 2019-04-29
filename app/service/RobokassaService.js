@@ -69,6 +69,7 @@ class RobokassaService {
     }
 
     async getPayment(paymentId) {
+        console.log(process.env.ROBOKASS_LOGIN, paymentId, process.env.ROBOKASSA_PASSWORD2, hashingUtils.hashSHA256(`${process.env.ROBOKASS_LOGIN}:${paymentId}:${process.env.ROBOKASSA_PASSWORD2}`))
         const url = `https://auth.robokassa.ru/Merchant/WebService/Service.asmx/OpState?MerchantLogin=${process.env.ROBOKASSA_LOGIN}&InvoiceID=${paymentId}&Signature=${hashingUtils.hashSHA256(`${process.env.ROBOKASS_LOGIN}:${paymentId}:${process.env.ROBOKASSA_PASSWORD2}`)}`
 
         console.log("fetching " + url)
