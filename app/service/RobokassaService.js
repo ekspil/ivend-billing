@@ -69,15 +69,11 @@ class RobokassaService {
     }
 
     async getPayment(paymentId) {
-        console.log(process.env.ROBOKASSA_LOGIN, paymentId, process.env.ROBOKASSA_PASSWORD2, hashingUtils.hashSHA256(`${process.env.ROBOKASSA_LOGIN}:${paymentId}:${process.env.ROBOKASSA_PASSWORD2}`))
         const url = `https://auth.robokassa.ru/Merchant/WebService/Service.asmx/OpState?MerchantLogin=${process.env.ROBOKASSA_LOGIN}&InvoiceID=${paymentId}&Signature=${hashingUtils.hashSHA256(`${process.env.ROBOKASSA_LOGIN}:${paymentId}:${process.env.ROBOKASSA_PASSWORD2}`)}`
 
-        console.log("fetching " + url)
         const response = await fetch(url)
 
         const xml = await response.text()
-
-        console.log(xml)
 
         const json = await new Promise((resolve, reject) => {
             parseString(xml, function (err, result) {
@@ -96,8 +92,6 @@ class RobokassaService {
 
         const [code] = Code
         const [description] = Description
-
-        console.log(`paymentId ${paymentId} code ${code} description ${description}`)
 
         switch (code) {
             case "0":
