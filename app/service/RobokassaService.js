@@ -25,6 +25,10 @@ class RobokassaService {
         this.getPayment = this.getPayment.bind(this)
     }
 
+    verifySignature(OutSum, InvId, SignatureValue) {
+        return hashingUtils.hashSHA256(`${OutSum}:${InvId}:${this.robokassa.password2}`) === SignatureValue
+    }
+
     async requestPayment(to, email, amount) {
         const invDesc = "Test payment"
 
