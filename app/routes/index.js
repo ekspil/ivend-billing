@@ -17,7 +17,7 @@ function Routes({fastify, knex, robokassaService}) {
         const {OutSum, InvId, SignatureValue} = request.body
         console.log({OutSum, InvId, SignatureValue})
 
-        if (!robokassaService.validateResultUrl(SignatureValue, OutSum, InvId)) {
+        if (!robokassaService.verifySignature(OutSum, InvId, SignatureValue)) {
             throw new Error("SignatureValidationError")
         }
 
