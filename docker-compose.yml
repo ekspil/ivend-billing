@@ -6,8 +6,6 @@ services:
       context: ./
     environment:
       - "NODE_ENV=production"
-      - "YANDEX_SHOP_ID=${YANDEX_SHOP_ID}"
-      - "YANDEX_SECRET_KEY=${YANDEX_SECRET_KEY}"
     ports:
       - "3500:3500"
     restart: always
