@@ -48,7 +48,7 @@ class RobokassaService {
         const options = {
             invId: paymentId,
             email,
-            isTest: true
+            isTest: process.env.NODE_ENV === "production"
         }
 
         const redirectUrl = this.robokassa.generatePaymentUrl(amount, invDesc, options)
