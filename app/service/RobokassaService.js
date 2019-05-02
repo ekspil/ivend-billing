@@ -17,7 +17,7 @@ class RobokassaService {
             password2: process.env.ROBOKASSA_PASSWORD2,
 
             // OPTIONAL CONFIGURATION
-            testMode: process.env.NODE_ENV === "production", // Whether to use test mode globally
+            testMode: process.env.NODE_ENV !== "production", // Whether to use test mode globally
             resultUrlRequestMethod: "POST" // HTTP request method selected for "ResultURL" requests
 
         })
@@ -48,7 +48,7 @@ class RobokassaService {
         const options = {
             invId: paymentId,
             email,
-            isTest: process.env.NODE_ENV === "production"
+            isTest: process.env.NODE_ENV !== "production"
         }
 
         const redirectUrl = this.robokassa.generatePaymentUrl(amount, invDesc, options)
