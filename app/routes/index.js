@@ -3,9 +3,9 @@ const PaymentStatus = require("../enums/PaymentStatus")
 
 function Routes({fastify, knex, robokassaService}) {
     const createPayment = async (request, reply) => {
-        const {amount, to, email} = request.body
+        const {amount, phone, userId, email} = request.body
 
-        const {paymentRequestId} = await robokassaService.requestPayment(to, email, amount)
+        const {paymentRequestId} = await robokassaService.requestPayment({userId, phone, email, amount})
 
         return reply.type("application/json").code(200).send({
             paymentRequestId
