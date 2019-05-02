@@ -24,6 +24,11 @@ const ErrorHandler = (error, request, reply) => {
         return reply.type("application/json").code(500).send({message: "Internal Server Error"})
     }
 
+    if (error.message === "PaymentRequestAlreadyProcessed") {
+        console.error("PaymentRequestAlreadyProcessed")
+        return reply.type("application/json").code(200).send({message: "PaymentAlreadyProcessed"})
+    }
+
     console.error(error)
     return reply.type("application/json").code(500).send({message: "Internal Server Error"})
 }
