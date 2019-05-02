@@ -91,7 +91,7 @@ jobs:
             - "3a:2c:53:af:57:c9:dd:eb:85:56:c6:b8:eb:fb:f5:4a"
       - run:
           name: Deploy
-          command: ssh-keyscan -H $DEPLOY_SERVER >> ~/.ssh/known_hosts && ssh root@$DEPLOY_SERVER 'cd /opt/billing && git checkout master && git pull && kubectl apply -f production-kube-config.yml'
+          command: ssh-keyscan -H $DEPLOY_SERVER >> ~/.ssh/known_hosts && ssh deploy@$DEPLOY_SERVER 'cd /opt/billing && git checkout master && git pull && kubectl apply -f production-kube-config.yml'
 
 
 workflows:
