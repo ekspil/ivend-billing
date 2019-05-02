@@ -65,20 +65,19 @@ jobs:
     steps:
       - add_ssh_keys:
           fingerprints:
-            - "49:d0:99:ae:33:c3:33:11:f9:5c:9e:85:44:90:2b:78"
+            - "3a:2c:53:af:57:c9:dd:eb:85:56:c6:b8:eb:fb:f5:4a"
 
       - run:
           name: Deploy
           command: |
             ssh-keyscan -H $DEPLOY_SERVER >> ~/.ssh/known_hosts &&
             echo "CIRCLE_SHA1=$CIRCLE_SHA1" > ./sshenv &&
-            scp ./sshenv root@$DEPLOY_SERVER:~/.ssh/environment &&
-            ssh root@$DEPLOY_SERVER 'source /opt/.env && \
-            cd /opt/billing && \
+            scp ./sshenv deploy@$DEPLOY_SERVER:~/.ssh/environment &&
+            ssh deploy@$DEPLOY_SERVER 'cd /opt/billing && \
             git checkout develop && \
             git pull && \
-            envsubst < development-kube-config.yml > /tmp/development-kube-config.yml.patched && \
-            microk8s.kubectl apply -f /tmp/development-kube-config.yml.patched'
+            envsubst < development-kube-config.yml > /tmp/billing_development-kube-config.yml.patched && \
+            kubectl apply -f /tmp/billing_development-kube-config.yml.patched'
 
   deploy_production:
     docker:
@@ -89,10 +88,10 @@ jobs:
     steps:
       - add_ssh_keys:
           fingerprints:
-            - "49:d0:99:ae:33:c3:33:11:f9:5c:9e:85:44:90:2b:78"
+            - "3a:2c:53:af:57:c9:dd:eb:85:56:c6:b8:eb:fb:f5:4a"
       - run:
           name: Deploy
-          command: ssh-keyscan -H $DEPLOY_SERVER >> ~/.ssh/known_hosts && ssh root@$DEPLOY_SERVER 'source /opt/.env && cd /opt/billing && git checkout master && git pull && microk8s.kubectl apply -f production-kube-config.yml'
+          command: ssh-keyscan -H $DEPLOY_SERVER >> ~/.ssh/known_hosts && ssh root@$DEPLOY_SERVER 'cd /opt/billing && git checkout master && git pull && kubectl apply -f production-kube-config.yml'
 
 
 workflows:

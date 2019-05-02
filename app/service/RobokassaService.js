@@ -35,8 +35,8 @@ class RobokassaService {
         return OutSum && InvId && SignatureValue && hash.toLowerCase() === SignatureValue.toLowerCase()
     }
 
-    async requestPayment(to, email, amount) {
-        const invDesc = "Test payment"
+    async requestPayment({userId, email, amount, phone}) {
+        const invDesc = `Аванс по договору ЛК №${userId}`
 
         const result = await this.knex.raw(`select nextval('payment_id_seq');`)
         const {rows} = result
@@ -59,7 +59,7 @@ class RobokassaService {
                 payment_id: paymentId,
                 redirect_url: redirectUrl,
                 status: PaymentStatus.PENDING,
-                to,
+                to: phone,
                 created_at: new Date(),
                 updated_at: new Date()
             })

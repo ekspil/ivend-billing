@@ -3,9 +3,9 @@ const PaymentStatus = require("../enums/PaymentStatus")
 
 function Routes({fastify, knex, robokassaService}) {
     const createPayment = async (request, reply) => {
-        const {amount, to, email} = request.body
+        const {amount, phone, userId, email} = request.body
 
-        const {paymentRequestId} = await robokassaService.requestPayment(to, email, amount)
+        const {paymentRequestId} = await robokassaService.requestPayment({userId, phone, email, amount})
 
         return reply.type("application/json").code(200).send({
             paymentRequestId
@@ -13,10 +13,7 @@ function Routes({fastify, knex, robokassaService}) {
     }
 
     const robokassaCallback = async (request, reply) => {
-        console.log("robokassaCallback " + JSON.stringify(request.body))
-
         const {OutSum, InvId, SignatureValue} = request.body
-        console.log({OutSum, InvId, SignatureValue})
 
         if (!robokassaService.verifySignature(OutSum, InvId, SignatureValue)) {
             throw new Error("SignatureValidationError")
@@ -29,11 +26,17 @@ function Routes({fastify, knex, robokassaService}) {
                 throw new Error("PaymentRequestNotFound")
             }
 
+            if(paymentRequest.status !== PaymentStatus.PENDING) {
+                throw new Error("PaymentRequestAlreadyProcessed")
+            }
+
             const deposit = await knex("deposits").where({payment_request_id: paymentRequest.id}).transacting(trx).first()
 
             if (!deposit) {
                 throw new Error("DepositNotFound")
             }
+
+            console.log("Robokassa approved payment for ${paymentRequest.to}, amount ${deposit.amount}")
 
             await knex("transactions")
                 .transacting(trx)

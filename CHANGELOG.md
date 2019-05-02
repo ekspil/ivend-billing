@@ -15,3 +15,11 @@
 # 1.0.3 - Hotfix
 
 * Robokassa - flip the isTest condition
+
+# 1.0.4 - Bugfix
+
+* Robokassa - add check for processed payment. Now processes only payment requests with status pending
+
+# 1.0.5 - Release
+
+* Robokassa - pass userId to inv description
