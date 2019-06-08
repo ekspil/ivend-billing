@@ -41,18 +41,33 @@ function billTelemetry({knex}) {
                     .groupBy("controllers.id", "controllers.user_id")
                 let dayFiscalPrice = 0
                 let fiscalControllers = controllers.filter(controller => controller.fiscalizationMode !== "NO_FISCAL")
+
                 if(kktOk){
                     let controllerCount = process.env.LOW_FISCAL_COST_LIMIT
                     if(fiscalControllers.length > process.env.LOW_FISCAL_COST_LIMIT){
                         controllerCount = fiscalControllers.length
                     }
-                    dayFiscalPrice = dayPriceResult.day_price * controllerCount
+                    let [dayFiscalPriceRow] = (await knex
+                        .raw("SELECT ROUND(:price::NUMERIC * :controllerCount::numeric, 2) as day_fiscal_price", {
+                            price: dayPriceResult.day_price,
+                            controllerCount: controllerCount
+                        })
+                        .transacting(trx)).rows
+                    dayFiscalPrice = dayFiscalPriceRow.day_fiscal_price
                 }
 
-                let controllerFiscalPrice = 0
-                if(dayFiscalPrice) {
-                    controllerFiscalPrice = dayFiscalPrice / controllers.length
-                    controllerFiscalPrice = controllerFiscalPrice.toFixed(2)
+
+                let dayPrice = dayPriceResult.day_price
+
+                if(dayFiscalPrice !== 0 && controllers.length > 0) {
+                    let [controllerFiscalPriceRow] = (await knex
+                        .raw("SELECT ROUND(:dayFiscalPrice::NUMERIC / :controllersLength::numeric + :dayPrice::numeric, 2) as day_price", {
+                            dayFiscalPrice: dayFiscalPrice,
+                            controllersLength: controllers.length,
+                            dayPrice: dayPriceResult.day_price
+                        })
+                        .transacting(trx)).rows
+                    dayPrice = controllerFiscalPriceRow.day_price
                 }
 
 
@@ -60,7 +75,6 @@ function billTelemetry({knex}) {
                     //counting price
                     // Price / DaysInMonth
 
-                    const dayPrice = Number(dayPriceResult.day_price) + Number(controllerFiscalPrice)
 
                     console.log(`Bill the User #${userId} for telemetry [ControllerID ${controller.controller_id}] for ${dayPrice} RUB`)
 
