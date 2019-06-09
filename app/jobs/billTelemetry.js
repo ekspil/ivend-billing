@@ -25,7 +25,7 @@ function billTelemetry({knex}) {
                     .where("kkts.user_id", userId)
                     .groupBy("kkts.id", "kkts.user_id")
 
-                let [kktOk] = kkts.filter(kkt => kkt.kktActivationDate)
+                const [kktOk] = kkts.filter(kkt => kkt.kktActivationDate)
 
                 const controllers = await knex
                     .transacting(trx)
@@ -39,42 +39,31 @@ function billTelemetry({knex}) {
                         "users.role": "VENDOR"
                     })
                     .groupBy("controllers.id", "controllers.user_id")
-                let dayFiscalPrice = 0
-                let fiscalControllers = controllers.filter(controller => controller.fiscalizationMode !== "NO_FISCAL")
 
-                if(kktOk){
-                    let controllerCount = process.env.LOW_FISCAL_COST_LIMIT
-                    if(fiscalControllers.length > process.env.LOW_FISCAL_COST_LIMIT){
-                        controllerCount = fiscalControllers.length
-                    }
-                    let [dayFiscalPriceRow] = (await knex
-                        .raw("SELECT ROUND(:price::NUMERIC * :controllerCount::numeric, 2) as day_fiscal_price", {
-                            price: dayPriceResult.day_price,
-                            controllerCount: controllerCount
-                        })
-                        .transacting(trx)).rows
-                    dayFiscalPrice = dayFiscalPriceRow.day_fiscal_price
-                }
+                const fiscalControllers = controllers.filter(controller => controller.fiscalizationMode !== "NO_FISCAL")
 
 
-                let dayPrice = dayPriceResult.day_price
-
-                if(dayFiscalPrice !== 0 && controllers.length > 0) {
-                    let [controllerFiscalPriceRow] = (await knex
-                        .raw("SELECT ROUND(:dayFiscalPrice::NUMERIC / :controllersLength::numeric + :dayPrice::numeric, 2) as day_price", {
-                            dayFiscalPrice: dayFiscalPrice,
-                            controllersLength: controllers.length,
-                            dayPrice: dayPriceResult.day_price
-                        })
-                        .transacting(trx)).rows
-                    dayPrice = controllerFiscalPriceRow.day_price
-                }
+                const controllerCount = (!kktOk) ? 0 : (fiscalControllers.length > Number(process.env.LOW_FISCAL_COST_LIMIT)) ? fiscalControllers.length : Number(process.env.LOW_FISCAL_COST_LIMIT)
+                const dayFiscalPriceRow = await knex("controllers")
+                    .first(knex.raw("ROUND(:price::NUMERIC * :controllerCount::numeric, 2) as day_fiscal_price", {
+                        price: dayPriceResult.day_price,
+                        controllerCount
+                    }))
+                    .transacting(trx)
+                const dayFiscalPrice = dayFiscalPriceRow.day_fiscal_price
 
 
                 for (const controller of controllers) {
                     //counting price
                     // Price / DaysInMonth
-
+                    const controllerFiscalPriceRow = await knex("controllers")
+                        .first(knex.raw("ROUND(:dayFiscalPrice::NUMERIC / :controllersLength::numeric + :dayPrice::numeric, 2) as day_price", {
+                            dayFiscalPrice,
+                            controllersLength: controllers.length,
+                            dayPrice: dayPriceResult.day_price
+                        }))
+                        .transacting(trx)
+                    const dayPrice = controllerFiscalPriceRow.day_price
 
                     console.log(`Bill the User #${userId} for telemetry [ControllerID ${controller.controller_id}] for ${dayPrice} RUB`)
 
