@@ -43,7 +43,7 @@ function billTelemetry({knex}) {
                 const fiscalControllers = controllers.filter(controller => controller.fiscalizationMode !== "NO_FISCAL")
 
 
-                const controllerCount = (!kktOk) ? 0 : (fiscalControllers.length > Number(process.env.LOW_FISCAL_COST_LIMIT)) ? fiscalControllers.length : Number(process.env.LOW_FISCAL_COST_LIMIT)
+                const controllerCount = (!kktOk) ? 0 : Math.max(fiscalControllers.length, Number(process.env.LOW_FISCAL_COST_LIMIT))
                 const dayFiscalPriceRow = await knex("controllers")
                     .first(knex.raw("ROUND(:price::NUMERIC * :controllerCount::numeric, 2) as day_fiscal_price", {
                         price: dayPriceResult.day_price,
