@@ -117,16 +117,26 @@ function Routes({fastify, knex, robokassaService}) {
 
 
         const dayFiscalPrice = dayFiscalPriceRow.day_fiscal_price
-        const controllerFiscalPriceRow = await knex("controllers")
-            .first(knex.raw("ROUND(:dayFiscalPrice::NUMERIC / :controllersLength::numeric + :dayPrice::numeric, 2) as day_price", {
-                dayFiscalPrice,
-                controllersLength: controllers.length,
-                dayPrice: dayPriceResult.day_price
-            }))
-        const dayPrice = controllerFiscalPriceRow.day_price
 
-        reply.type("application/json").code(200)
-        return {price: Number(dayPrice)}
+        if(controllers.length > 0){
+            const controllerFiscalPriceRow = await knex("controllers")
+                .first(knex.raw("ROUND(:dayFiscalPrice::NUMERIC / :controllersLength::numeric + :dayPrice::numeric, 2) as day_price", {
+                    dayFiscalPrice,
+                    controllersLength: controllers.length,
+                    dayPrice: dayPriceResult.day_price
+                }))
+            reply.type("application/json").code(200)
+            return {price: Number(controllerFiscalPriceRow.day_price)}
+
+        } else {
+
+            reply.type("application/json").code(200)
+            return {price: Number(dayPriceResult.day_price)}
+
+        }
+
+
+
     }
 
     fastify.register(require("fastify-formbody"))
