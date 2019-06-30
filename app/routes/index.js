@@ -109,23 +109,27 @@ function Routes({fastify, knex, robokassaService}) {
 
 
         const controllerCount = (!kktOk) ? 0 : Math.max(fiscalControllers.length, Number(process.env.LOW_FISCAL_COST_LIMIT))
+        console.log(`controllerCount=${controllerCount}`)
+        console.log(`dayPriceResult.day_price=${dayPriceResult.day_price}`)
         const dayFiscalPriceRow = await knex("controllers")
             .first(knex.raw("ROUND(:price::NUMERIC * :controllerCount::numeric, 2) as day_fiscal_price", {
-                price: dayPriceResult.day_price,
+                price: Number(dayPriceResult.day_price),
                 controllerCount
             }))
 
 
-        const dayFiscalPrice = dayFiscalPriceRow.day_fiscal_price
-
+        const dayFiscalPrice = Number(dayFiscalPriceRow.day_fiscal_price)
+        console.log(`dayFiscalPrice=${dayFiscalPrice}`)
+        console.log(`dayFiscalPrice=${dayFiscalPrice}`)
         if(controllers.length > 0){
             const controllerFiscalPriceRow = await knex("controllers")
                 .first(knex.raw("ROUND(:dayFiscalPrice::NUMERIC / :controllersLength::numeric + :dayPrice::numeric, 2) as day_price", {
                     dayFiscalPrice,
                     controllersLength: controllers.length,
-                    dayPrice: dayPriceResult.day_price
+                    dayPrice: Number(dayPriceResult.day_price)
                 }))
             reply.type("application/json").code(200)
+            console.log(`controllerFiscalPriceRow.day_price=${controllerFiscalPriceRow.day_price}`)
             return {price: Number(controllerFiscalPriceRow.day_price)}
 
         } else {
