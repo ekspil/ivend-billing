@@ -38,6 +38,7 @@ function billTelemetry({knex}) {
                         "controllers.status": "ENABLED",
                         "users.role": "VENDOR"
                     })
+                    .whereNull("deleted_at")
                     .groupBy("controllers.id", "controllers.user_id")
 
                 const fiscalControllers = controllers.filter(controller => controller.fiscalizationMode !== "NO_FISCAL")
