@@ -104,10 +104,11 @@ function Routes({fastify, knex, robokassaService}) {
                 "users.role": "VENDOR"
             })
             .groupBy("controllers.id", "controllers.user_id")
-
+        console.log(`controllers.length=${controllers.length}`)
         const fiscalControllers = controllers.filter(controller => controller.fiscalizationMode !== "NO_FISCAL")
-
-
+        console.log(`kktOk.kktActivationDate=${kktOk.kktActivationDate}`)
+        console.log(`LOW_FISCAL_COST_LIMIT=${process.env.LOW_FISCAL_COST_LIMIT}`)
+        console.log(`fiscalControllers.length=${fiscalControllers.length}`)
         const controllerCount = (!kktOk) ? 0 : Math.max(fiscalControllers.length, Number(process.env.LOW_FISCAL_COST_LIMIT))
         console.log(`controllerCount=${controllerCount}`)
         console.log(`dayPriceResult.day_price=${dayPriceResult.day_price}`)
@@ -120,7 +121,7 @@ function Routes({fastify, knex, robokassaService}) {
 
         const dayFiscalPrice = Number(dayFiscalPriceRow.day_fiscal_price)
         console.log(`dayFiscalPrice=${dayFiscalPrice}`)
-        console.log(`dayFiscalPrice=${dayFiscalPrice}`)
+        
         if(controllers.length > 0){
             const controllerFiscalPriceRow = await knex("controllers")
                 .first(knex.raw("ROUND(:dayFiscalPrice::NUMERIC / :controllersLength::numeric + :dayPrice::numeric, 2) as day_price", {
