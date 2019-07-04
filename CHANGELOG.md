@@ -23,3 +23,7 @@
 # 1.0.5 - Release
 
 * Robokassa - pass userId to inv description
+
+# 1.0.6 - Release
+
+* Added calculation of fiscal price
