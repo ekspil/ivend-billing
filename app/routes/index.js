@@ -73,7 +73,7 @@ function Routes({fastify, knex, robokassaService}) {
     }
 
     const servicePriceDaily = async (request, reply) => {
-        const {service} = request.params
+        const {service, userId} = request.params
 
         if (service !== "TELEMETRY") {
             return reply.type("application/json").code(404).send({message: "Not found"})
@@ -84,17 +84,65 @@ function Routes({fastify, knex, robokassaService}) {
                 price: Number(process.env.TELEMETRY_PRICE),
             })).rows
 
-        const dayPrice = dayPriceResult.day_price
+        const kkts = await knex
+            .select("kkts.user_id as user_id", "kkts.kktActivationDate as kktActivationDate", "kkts.id as kkt_id")
+            .from("kkts")
+            .leftJoin("users", "kkts.user_id", "users.id")
+            .where("kkts.user_id", userId)
+            .groupBy("kkts.id", "kkts.user_id")
 
-        reply.type("application/json").code(200)
-        return {price: Number(dayPrice)}
+        const [kktOk] = kkts.filter(kkt => kkt.kktActivationDate)
+
+        const controllers = await knex
+            .select("controllers.user_id as user_id", "controllers.status as status", "controllers.id as controller_id", "controllers.fiscalization_mode as fiscalizationMode")
+            .from("controllers")
+            .leftJoin("users", "controllers.user_id", "users.id")
+            .where("controllers.user_id", userId)
+            .where({
+                "controllers.user_id": userId,
+                "controllers.status": "ENABLED",
+                "users.role": "VENDOR"
+            })
+            .whereNull("deleted_at")
+            .groupBy("controllers.id", "controllers.user_id")
+
+        const fiscalControllers = controllers.filter(controller => controller.fiscalizationMode !== "NO_FISCAL")
+        const controllerCount = (!kktOk) ? 0 : Math.max(fiscalControllers.length, Number(process.env.LOW_FISCAL_COST_LIMIT))
+        const dayFiscalPriceRow = await knex("controllers")
+            .first(knex.raw("ROUND(:price::NUMERIC * :controllerCount::numeric, 2) as day_fiscal_price", {
+                price: Number(dayPriceResult.day_price),
+                controllerCount
+            }))
+
+
+        const dayFiscalPrice = Number(dayFiscalPriceRow.day_fiscal_price)
+        
+        if(controllers.length > 0){
+            const controllerFiscalPriceRow = await knex("controllers")
+                .first(knex.raw("ROUND(:dayFiscalPrice::NUMERIC / :controllersLength::numeric + :dayPrice::numeric, 2) as day_price", {
+                    dayFiscalPrice,
+                    controllersLength: controllers.length,
+                    dayPrice: Number(dayPriceResult.day_price)
+                }))
+            reply.type("application/json").code(200)
+            return {price: Number(controllerFiscalPriceRow.day_price)}
+
+        } else {
+
+            reply.type("application/json").code(200)
+            return {price: Number(dayPriceResult.day_price)}
+
+        }
+
+
+
     }
 
     fastify.register(require("fastify-formbody"))
 
     fastify.post("/api/v1/billing/createPayment", createPayment)
     fastify.get("/api/v1/status", status)
-    fastify.get("/api/v1/service/:service/price/daily", servicePriceDaily)
+    fastify.get("/api/v1/service/:service/price/daily/:userId", servicePriceDaily)
 
     fastify.post("/api/v1/callback/robokassa", robokassaCallback)
     fastify.post("/api/v1/callback/robokassa/sucesss", robokassaSuccessResult)
