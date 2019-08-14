@@ -72,6 +72,26 @@ function Routes({fastify, knex, robokassaService}) {
         return {health: "OK"}
     }
 
+
+    const changeUserBalance = async (request, reply) => {
+
+        const {sum, userId} = request.params
+
+
+        await knex("transactions")
+            .insert({
+                amount: sum,
+                user_id: userId,
+                meta: `admin_change_balance_user_id_${userId}_sum_${sum}`,
+                created_at: new Date(),
+                updated_at: new Date()
+            })
+
+
+        reply.type("application/json").code(200)
+        return {balance: true}
+    }
+
     const servicePriceDaily = async (request, reply) => {
         const {service, userId} = request.params
 
@@ -143,6 +163,7 @@ function Routes({fastify, knex, robokassaService}) {
     fastify.post("/api/v1/billing/createPayment", createPayment)
     fastify.get("/api/v1/status", status)
     fastify.get("/api/v1/service/:service/price/daily/:userId", servicePriceDaily)
+    fastify.get("/api/v1/service/balance/change/:userId/:sum", changeUserBalance)
 
     fastify.post("/api/v1/callback/robokassa", robokassaCallback)
     fastify.post("/api/v1/callback/robokassa/sucesss", robokassaSuccessResult)
