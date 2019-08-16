@@ -27,3 +27,7 @@
 # 1.0.6 - Release
 
 * Added calculation of fiscal price
+
+# 1.0.7 - Release
+
+* Added changeBalance function
