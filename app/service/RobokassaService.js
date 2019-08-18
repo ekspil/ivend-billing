@@ -3,6 +3,7 @@ const fetch = require("node-fetch")
 const parseString = require("xml2js").parseString
 const hashingUtils = require("../utils/hashingUtils")
 const PaymentStatus = require("../enums/PaymentStatus")
+const logger = require("my-custom-logger")
 
 class RobokassaService {
 
@@ -30,7 +31,7 @@ class RobokassaService {
     verifySignature(OutSum, InvId, SignatureValue) {
         const hash = hashingUtils
             .hashSHA256(`${OutSum}:${InvId}:${process.env.ROBOKASSA_PASSWORD2}`)
-        console.log(OutSum, InvId, process.env.ROBOKASSA_PASSWORD2, hash, SignatureValue)
+        logger.info(OutSum, InvId, process.env.ROBOKASSA_PASSWORD2, hash, SignatureValue)
 
         return OutSum && InvId && SignatureValue && hash.toLowerCase() === SignatureValue.toLowerCase()
     }
@@ -64,7 +65,7 @@ class RobokassaService {
                 updated_at: new Date()
             })
 
-        console.log(`PaymentRequestId ${paymentRequestId} / PaymentId ${paymentId} / ${email} / ${amount} / ${redirectUrl}`)
+        logger.info(`PaymentRequestId ${paymentRequestId} / PaymentId ${paymentId} / ${email} / ${amount} / ${redirectUrl}`)
 
         return {paymentRequestId}
     }
@@ -89,16 +90,12 @@ class RobokassaService {
         const {Result} = json.OperationStateResponse
         const [resultObj] = Result
 
-        const {Code, Description} = resultObj
+        const {Code} = resultObj
 
         const [code] = Code
-        const [description] = Description
 
         switch (code) {
             case "0":
-                const {State} = json.OperationStateResponse
-                const [stateObj] = State
-
                 return json.OperationStateResponse.State[0]
             case "3":
                 return null

@@ -1,7 +1,9 @@
+const logger = require("my-custom-logger")
+
 function billDailyServices({knex}) {
     return async () => {
         return knex.transaction(async (trx) => {
-            console.log(`Starting checking negative balance job at ${new Date()}`)
+            logger.info(`Starting checking negative balance job at ${new Date()}`)
 
             const users = await knex("users")
                 .transacting(trx)
@@ -50,7 +52,7 @@ function billDailyServices({knex}) {
                 if (Number(balance_now) < 0) {
                     if (Number(balance_day_ago) < 0) {
                         if (Number(balance_two_days_ago < 0)) {
-                            console.log(`Three days of negative balance for user #${user.id}, locking`)
+                            logger.info(`Three days of negative balance for user #${user.id}, locking`)
                             await knex("users")
                                 .transacting(trx)
                                 .where({id: user.id})

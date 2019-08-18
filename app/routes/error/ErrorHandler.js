@@ -1,35 +1,37 @@
+const logger = require("my-custom-logger")
+
 const ErrorHandler = (error, request, reply) => {
     if (error.message === "Not Found") {
-        console.log("Url not found " + request.req.url)
+        logger.error("Url not found " + request.req.url)
         return reply.type("application/json").code(404).send({message: "Not found"})
     }
 
     if (error.message === "SignatureValidationError") {
-        console.warn("Rejected request due invalid signature [401]")
+        logger.error("Rejected request due invalid signature [401]")
         return reply.type("application/json").code(401).send({message: "Invalid signature"})
     }
 
     if (error.message === "RobokassaUnknownCode") {
-        console.error("Unknown response from Robokassa")
+        logger.error("Unknown response from Robokassa")
         return reply.type("application/json").code(500).send({message: "Internal Server Error"})
     }
 
     if (error.message === "PaymentRequestNotFound") {
-        console.error("Payment request not found")
+        logger.error("Payment request not found")
         return reply.type("application/json").code(500).send({message: "Internal Server Error"})
     }
 
     if (error.message === "DepositNotFound") {
-        console.error("Deposit not found")
+        logger.error("Deposit not found")
         return reply.type("application/json").code(500).send({message: "Internal Server Error"})
     }
 
     if (error.message === "PaymentRequestAlreadyProcessed") {
-        console.error("PaymentRequestAlreadyProcessed")
+        logger.error("PaymentRequestAlreadyProcessed")
         return reply.type("application/json").code(200).send({message: "PaymentAlreadyProcessed"})
     }
 
-    console.error(error)
+    logger.error(error)
     return reply.type("application/json").code(500).send({message: "Internal Server Error"})
 }
 

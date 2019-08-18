@@ -1,5 +1,6 @@
 const ErrorHandler = require("./error/ErrorHandler")
 const PaymentStatus = require("../enums/PaymentStatus")
+const logger = require("my-custom-logger")
 
 function Routes({fastify, knex, robokassaService}) {
     const createPayment = async (request, reply) => {
@@ -36,7 +37,7 @@ function Routes({fastify, knex, robokassaService}) {
                 throw new Error("DepositNotFound")
             }
 
-            console.log("Robokassa approved payment for ${paymentRequest.to}, amount ${deposit.amount}")
+            logger.info("Robokassa approved payment for ${paymentRequest.to}, amount ${deposit.amount}")
 
             await knex("transactions")
                 .transacting(trx)
@@ -136,7 +137,7 @@ function Routes({fastify, knex, robokassaService}) {
 
 
         const dayFiscalPrice = Number(dayFiscalPriceRow.day_fiscal_price)
-        
+
         if(controllers.length > 0){
             const controllerFiscalPriceRow = await knex("controllers")
                 .first(knex.raw("ROUND(:dayFiscalPrice::NUMERIC / :controllersLength::numeric + :dayPrice::numeric, 2) as day_price", {
