@@ -35,3 +35,8 @@
 # 1.0.8 - Release
 
 * Added centralized logging
+
+# 1.0.9 - Release
+
+* Bump logger to 1.0.2
+* Pass service name to logger
