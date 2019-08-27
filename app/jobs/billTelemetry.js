@@ -1,7 +1,9 @@
+const logger = require("my-custom-logger")
+
 function billTelemetry({knex}) {
     return async () => {
         return knex.transaction(async (trx) => {
-            console.log(`Starting billing for telemtry at ${new Date()}`)
+            logger.info(`Starting billing for telemtry at ${new Date()}`)
 
             const users = await knex("users")
                 .transacting(trx)
@@ -66,7 +68,7 @@ function billTelemetry({knex}) {
                         .transacting(trx)
                     const dayPrice = controllerFiscalPriceRow.day_price
 
-                    console.log(`Bill the User #${userId} for telemetry [ControllerID ${controller.controller_id}] for ${dayPrice} RUB`)
+                    logger.info(`Bill the User #${userId} for telemetry [ControllerID ${controller.controller_id}] for ${dayPrice} RUB`)
 
                     await knex("transactions")
                         .transacting(trx)

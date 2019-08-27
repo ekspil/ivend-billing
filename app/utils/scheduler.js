@@ -1,4 +1,5 @@
 const cron = require("node-cron")
+const logger = require("my-custom-logger")
 
 const scheduleTasks = async ({knex}) => {
     const billTelemetry = require("../jobs/billTelemetry")({knex})
@@ -8,11 +9,11 @@ const scheduleTasks = async ({knex}) => {
     cron.schedule("0 0 * * *", () => {
         billTelemetry()
             .then(() => {
-                console.log("Successfully billed telemetry for current day")
+                logger.info("Successfully billed telemetry for current day")
             })
             .catch((e) => {
-                console.error("Failed to bill telemetry for current day")
-                console.error(e)
+                logger.error("Failed to bill telemetry for current day")
+                logger.error(e)
                 //TODO notificate
             })
     })
@@ -21,11 +22,11 @@ const scheduleTasks = async ({knex}) => {
     cron.schedule("0 1 * * *", () => {
         checkForNegativeBalance()
             .then(() => {
-                console.log("Successfully checked for negative balances")
+                logger.info("Successfully checked for negative balances")
             })
             .catch((e) => {
-                console.error("Failed to check for negative balances")
-                console.error(e)
+                logger.error("Failed to check for negative balances")
+                logger.error(e)
                 //TODO notificate
             })
     })

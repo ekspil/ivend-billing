@@ -1,4 +1,5 @@
 require("dotenv").config()
+const logger = require("my-custom-logger")
 
 const RobokassaService = require("./app/service/RobokassaService")
 const scheduler = require("./app/utils/scheduler")
@@ -15,8 +16,6 @@ const knex = require("knex")({
 })
 
 const robokassaService = new RobokassaService({knex})
-
-
 const fastify = require("fastify")({})
 
 const Routes = require("./app/routes")
@@ -24,8 +23,10 @@ Routes({fastify, knex, robokassaService})
 
 scheduler.scheduleTasks({knex})
 
-fastify.listen(3500, "0.0.0.0", (err) => {
-    console.log("Server started on port 3500")
+const port = 3500
+
+fastify.listen(port, "0.0.0.0", (err) => {
+    logger.info("iVend billing service started on port " + port)
     if (err) throw err
 })
 
