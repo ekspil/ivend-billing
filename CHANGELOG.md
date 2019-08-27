@@ -31,3 +31,7 @@
 # 1.0.7 - Release
 
 * Added changeBalance function
+
+# 1.0.8 - Release
+
+* Added centralized logging
