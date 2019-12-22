@@ -79,7 +79,8 @@ function Routes({fastify, knex, robokassaService}) {
         const {sum, userId} = request.params
 
 
-        await knex("transactions")
+        const [TrId] = await knex("transactions")
+            .returning("id")
             .insert({
                 amount: sum,
                 user_id: userId,
@@ -88,8 +89,21 @@ function Routes({fastify, knex, robokassaService}) {
                 updated_at: new Date()
             })
 
+        const [paymentRequestId] = await knex("payment_requests")
+            .returning("id")
+            .insert({
+                payment_id: "ADMIN-CH-B-"+TrId,
+                redirect_url: "none",
+                status: PaymentStatus.ADMIN_EDIT,
+                to: "none",
+                created_at: new Date(),
+                updated_at: new Date()
+            })
 
-        reply.type("application/json").code(200)
+
+        reply.type("application/json").code(200).send({
+            paymentRequestId
+        })
         return {balance: true}
     }
 
