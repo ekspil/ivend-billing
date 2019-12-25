@@ -78,32 +78,36 @@ function Routes({fastify, knex, robokassaService}) {
 
         const {sum, userId} = request.params
 
+        await knex.transaction(async (trx) => {
+            const [TrId] = await knex("transactions")
+                .transacting(trx)
+                .returning("id")
+                .insert({
+                    amount: sum,
+                    user_id: userId,
+                    meta: `admin_change_balance_user_id_${userId}_sum_${sum}`,
+                    created_at: new Date(),
+                    updated_at: new Date()
+                })
 
-        const [TrId] = await knex("transactions")
-            .returning("id")
-            .insert({
-                amount: sum,
-                user_id: userId,
-                meta: `admin_change_balance_user_id_${userId}_sum_${sum}`,
-                created_at: new Date(),
-                updated_at: new Date()
+            const [paymentRequestId] = await knex("payment_requests")
+                .transacting(trx)
+                .returning("id")
+                .insert({
+                    payment_id: "ADMIN-CH-B-" + TrId,
+                    redirect_url: "none",
+                    status: PaymentStatus.ADMIN_EDIT,
+                    to: "none",
+                    created_at: new Date(),
+                    updated_at: new Date()
+                })
+
+            reply.type("application/json").code(200).send({
+                paymentRequestId
             })
 
-        const [paymentRequestId] = await knex("payment_requests")
-            .returning("id")
-            .insert({
-                payment_id: "ADMIN-CH-B-"+TrId,
-                redirect_url: "none",
-                status: PaymentStatus.ADMIN_EDIT,
-                to: "none",
-                created_at: new Date(),
-                updated_at: new Date()
-            })
-
-
-        reply.type("application/json").code(200).send({
-            paymentRequestId
         })
+
         return {balance: true}
     }
 
