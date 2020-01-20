@@ -95,7 +95,7 @@ function Routes({fastify, knex, robokassaService}) {
                 .returning("id")
                 .insert({
                     payment_id: "ADMIN-CH-B-" + TrId,
-                    redirect_url: "none",
+                    redirect_url: "ADMIN-CH-B-" + TrId,
                     status: PaymentStatus.ADMIN_EDIT,
                     to: "none",
                     created_at: new Date(),
