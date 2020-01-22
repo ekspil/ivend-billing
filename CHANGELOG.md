@@ -40,3 +40,9 @@
 
 * Bump logger to 1.0.2
 * Pass service name to logger
+
+# 1.0.10 - Release
+
+* Correct error in changeUserBalance
+* Added registrations of changeUserBalance
+
