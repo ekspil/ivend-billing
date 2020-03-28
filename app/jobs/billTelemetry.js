@@ -19,6 +19,13 @@ function billTelemetry({knex}) {
                     })
                     .transacting(trx)).rows
 
+
+                const [terminalDayPriceResult] = (await knex
+                    .raw("SELECT ROUND(:price::NUMERIC / (SELECT DATE_PART('days',  DATE_TRUNC('month', NOW())  + '1 MONTH'::INTERVAL  - '1 DAY'::INTERVAL))::numeric, 2) as day_price", {
+                        price: Number(process.env.TERMINAL_PRICE),
+                    })).rows
+
+
                 const kkts = await knex
                     .transacting(trx)
                     .select("kkts.user_id as user_id", "kkts.kktActivationDate as kktActivationDate", "kkts.id as kkt_id")
@@ -31,7 +38,7 @@ function billTelemetry({knex}) {
 
                 const controllers = await knex
                     .transacting(trx)
-                    .select("controllers.user_id as user_id", "controllers.status as status", "controllers.id as controller_id", "controllers.fiscalization_mode as fiscalizationMode")
+                    .select("controllers.user_id as user_id", "controllers.status as status", "controllers.sim_card_number as simCardNumber",  "controllers.id as controller_id", "controllers.fiscalization_mode as fiscalizationMode")
                     .from("controllers")
                     .leftJoin("users", "controllers.user_id", "users.id")
                     .where("controllers.user_id", userId)
@@ -44,6 +51,7 @@ function billTelemetry({knex}) {
                     .groupBy("controllers.id", "controllers.user_id")
 
                 const fiscalControllers = controllers.filter(controller => controller.fiscalizationMode !== "NO_FISCAL")
+
 
 
                 const controllerCount = (!kktOk) ? 0 : Math.max(fiscalControllers.length, Number(process.env.LOW_FISCAL_COST_LIMIT))
@@ -59,11 +67,17 @@ function billTelemetry({knex}) {
                 for (const controller of controllers) {
                     //counting price
                     // Price / DaysInMonth
+                    let terminal = 0
+                    if(controller.simCardNumber && controller.simCardNumber !== "0" && controller.simCardNumber !== "false"){
+                        terminal = 1
+                    }
                     const controllerFiscalPriceRow = await knex("controllers")
-                        .first(knex.raw("ROUND(:dayFiscalPrice::NUMERIC / :controllersLength::numeric + :dayPrice::numeric, 2) as day_price", {
+                        .first(knex.raw("ROUND(:dayFiscalPrice::NUMERIC / :controllersLength::numeric + :dayPrice::numeric + :terminalPrice::numeric * :terminal::numeric, 2) as day_price", {
                             dayFiscalPrice,
                             controllersLength: controllers.length,
-                            dayPrice: dayPriceResult.day_price
+                            dayPrice: dayPriceResult.day_price,
+                            terminalPrice: Number(terminalDayPriceResult.day_price),
+                            terminal
                         }))
                         .transacting(trx)
                     const dayPrice = controllerFiscalPriceRow.day_price
