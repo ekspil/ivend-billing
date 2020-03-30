@@ -123,6 +123,11 @@ function Routes({fastify, knex, robokassaService}) {
                 price: Number(process.env.TELEMETRY_PRICE),
             })).rows
 
+        const [terminalDayPriceResult] = (await knex
+            .raw("SELECT ROUND(:price::NUMERIC / (SELECT DATE_PART('days',  DATE_TRUNC('month', NOW())  + '1 MONTH'::INTERVAL  - '1 DAY'::INTERVAL))::numeric, 2) as day_price", {
+                price: Number(process.env.TERMINAL_PRICE),
+            })).rows
+
         const kkts = await knex
             .select("kkts.user_id as user_id", "kkts.kktActivationDate as kktActivationDate", "kkts.id as kkt_id")
             .from("kkts")
@@ -133,14 +138,13 @@ function Routes({fastify, knex, robokassaService}) {
         const [kktOk] = kkts.filter(kkt => kkt.kktActivationDate)
 
         const controllers = await knex
-            .select("controllers.user_id as user_id", "controllers.status as status", "controllers.id as controller_id", "controllers.fiscalization_mode as fiscalizationMode")
+            .select("controllers.user_id as user_id", "controllers.status as status", "controllers.id as controller_id", "controllers.sim_card_number as simCardNumber", "controllers.fiscalization_mode as fiscalizationMode")
             .from("controllers")
             .leftJoin("users", "controllers.user_id", "users.id")
             .where("controllers.user_id", userId)
             .where({
                 "controllers.user_id": userId,
-                "controllers.status": "ENABLED",
-                "users.role": "VENDOR"
+                "controllers.status": "ENABLED"
             })
             .whereNull("deleted_at")
             .groupBy("controllers.id", "controllers.user_id")
@@ -155,19 +159,22 @@ function Routes({fastify, knex, robokassaService}) {
 
 
         const dayFiscalPrice = Number(dayFiscalPriceRow.day_fiscal_price)
+        const controllersWithSim = controllers.filter(controller => controller.simCardNumber && controller.simCardNumber !== "0" && controller.simCardNumber !== "false").length
+
 
         if(controllers.length > 0){
             const controllerFiscalPriceRow = await knex("controllers")
-                .first(knex.raw("ROUND(:dayFiscalPrice::NUMERIC / :controllersLength::numeric + :dayPrice::numeric, 2) as day_price", {
+                .first(knex.raw("ROUND(:dayFiscalPrice::NUMERIC + :dayPrice::numeric * :controllersLength::numeric + :terminals::numeric * :terminalPrice::numeric, 2) as day_price", {
                     dayFiscalPrice,
                     controllersLength: controllers.length,
-                    dayPrice: Number(dayPriceResult.day_price)
+                    dayPrice: Number(dayPriceResult.day_price),
+                    terminals: Number(controllersWithSim),
+                    terminalPrice: Number(terminalDayPriceResult.day_price)
                 }))
             reply.type("application/json").code(200)
             return {price: Number(controllerFiscalPriceRow.day_price)}
 
         } else {
-
             reply.type("application/json").code(200)
             return {price: Number(dayPriceResult.day_price)}
 

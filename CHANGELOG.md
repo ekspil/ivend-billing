@@ -46,3 +46,8 @@
 * Correct error in changeUserBalance
 * Added registrations of changeUserBalance
 
+# 1.0.11 - Release
+
+* Added terminal billing
+
+
