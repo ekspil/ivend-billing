@@ -164,7 +164,7 @@ function Routes({fastify, knex, robokassaService}) {
 
         if(controllers.length > 0){
             const controllerFiscalPriceRow = await knex("controllers")
-                .first(knex.raw("ROUND(:dayFiscalPrice::NUMERIC / :controllersLength::numeric + :dayPrice::numeric + :terminals::numeric * :terminalPrice::numeric, 2) as day_price", {
+                .first(knex.raw("ROUND(:dayFiscalPrice::NUMERIC + :dayPrice::numeric * :controllersLength::numeric + :terminals::numeric * :terminalPrice::numeric, 2) as day_price", {
                     dayFiscalPrice,
                     controllersLength: controllers.length,
                     dayPrice: Number(dayPriceResult.day_price),
