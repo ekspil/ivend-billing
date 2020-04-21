@@ -135,7 +135,7 @@ function Routes({fastify, knex, robokassaService}) {
             .where("kkts.user_id", userId)
             .groupBy("kkts.id", "kkts.user_id")
 
-        const [kktOk] = kkts.filter(kkt => kkt.kktActivationDate)
+        const kktOk = kkts.filter(kkt => kkt.kktActivationDate)
 
         const controllers = await knex
             .select("controllers.user_id as user_id", "controllers.status as status", "controllers.id as controller_id", "controllers.sim_card_number as simCardNumber", "controllers.fiscalization_mode as fiscalizationMode")
@@ -150,7 +150,7 @@ function Routes({fastify, knex, robokassaService}) {
             .groupBy("controllers.id", "controllers.user_id")
 
         const fiscalControllers = controllers.filter(controller => controller.fiscalizationMode !== "NO_FISCAL")
-        const controllerCount = (!kktOk) ? 0 : Math.max(fiscalControllers.length, Number(process.env.LOW_FISCAL_COST_LIMIT))
+        const controllerCount = (kktOk.length == 0) ? 0 : Math.max(fiscalControllers.length, (Number(process.env.LOW_FISCAL_COST_LIMIT)* kktOk.length))
         const dayFiscalPriceRow = await knex("controllers")
             .first(knex.raw("ROUND(:price::NUMERIC * :controllerCount::numeric, 2) as day_fiscal_price", {
                 price: Number(dayPriceResult.day_price),
