@@ -50,4 +50,8 @@
 
 * Added terminal billing
 
+# 1.0.12 - Release
+
+* fix fiscal price
+
 
