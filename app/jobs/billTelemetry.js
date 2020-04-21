@@ -34,7 +34,7 @@ function billTelemetry({knex}) {
                     .where("kkts.user_id", userId)
                     .groupBy("kkts.id", "kkts.user_id")
 
-                const [kktOk] = kkts.filter(kkt => kkt.kktActivationDate)
+                const kktOk = kkts.filter(kkt => kkt.kktActivationDate)
 
                 const controllers = await knex
                     .transacting(trx)
@@ -54,7 +54,7 @@ function billTelemetry({knex}) {
 
 
 
-                const controllerCount = (!kktOk) ? 0 : Math.max(fiscalControllers.length, Number(process.env.LOW_FISCAL_COST_LIMIT))
+                const controllerCount = (kktOk.length == 0) ? 0 : Math.max(fiscalControllers.length, (Number(process.env.LOW_FISCAL_COST_LIMIT)* kktOk.length))
                 const dayFiscalPriceRow = await knex("controllers")
                     .first(knex.raw("ROUND(:price::NUMERIC * :controllerCount::numeric, 2) as day_fiscal_price", {
                         price: dayPriceResult.day_price,
