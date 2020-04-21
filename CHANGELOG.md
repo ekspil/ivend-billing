@@ -54,4 +54,8 @@
 
 * fix fiscal price
 
+# 1.0.13 - Release
+
+* fix fiscal price
+
 
