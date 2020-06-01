@@ -38,17 +38,18 @@ function billTelemetry({knex}) {
 
                 const controllers = await knex
                     .transacting(trx)
-                    .select("controllers.user_id as user_id", "controllers.status as status", "controllers.sim_card_number as simCardNumber",  "controllers.id as controller_id", "controllers.fiscalization_mode as fiscalizationMode")
                     .from("controllers")
                     .leftJoin("users", "controllers.user_id", "users.id")
+                    .join("machines", "controllers.id", "machines.controller_id")
+                    .select("controllers.user_id as user_id", "controllers.status as status", "controllers.sim_card_number as simCardNumber",  "controllers.id as controller_id", "controllers.fiscalization_mode as fiscalizationMode", "machines.id as machine_id")
                     .where("controllers.user_id", userId)
                     .where({
                         "controllers.user_id": userId,
                         "controllers.status": "ENABLED",
                         "users.role": "VENDOR"
                     })
-                    .whereNull("deleted_at")
-                    .groupBy("controllers.id", "controllers.user_id")
+                    .whereNull("controllers.deleted_at")
+                    .groupBy("controllers.id", "controllers.user_id", "machines.id")
 
                 const fiscalControllers = controllers.filter(controller => controller.fiscalizationMode !== "NO_FISCAL")
 
@@ -67,6 +68,15 @@ function billTelemetry({knex}) {
                 for (const controller of controllers) {
                     //counting price
                     // Price / DaysInMonth
+                    const firstSale = await knex
+                        .transacting(trx)
+                        .from("sales")
+                        .first("id", "price")
+                        .where("machine_id", controller.machine_id)
+
+                    if(!firstSale) continue
+
+
                     let terminal = 0
                     if(controller.simCardNumber && controller.simCardNumber !== "0" && controller.simCardNumber !== "false"){
                         terminal = 1
