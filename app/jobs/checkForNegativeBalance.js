@@ -8,7 +8,7 @@ function billDailyServices({knex}) {
             const users = await knex("users")
                 .transacting(trx)
                 .select("id")
-                .where("role", "VENDOR_NEGATIVE_BALANCE")
+                .whereIn("role", ["VENDOR_NEGATIVE_BALANCE", "VENDOR"])
 
             for (const user of users) {
 
@@ -37,35 +37,47 @@ function billDailyServices({knex}) {
                     .first()
 
 
-                const balanceTwoDaysAgo = await knex("transactions")
-                    .sum("amount as balance_two_days_ago")
-                    .where({
-                        user_id: user.id,
-                    })
-                    .andWhere("created_at", "<", dateTwoDaysAgo)
-                    .first()
+                // const balanceTwoDaysAgo = await knex("transactions")
+                //     .sum("amount as balance_two_days_ago")
+                //     .where({
+                //         user_id: user.id,
+                //     })
+                //     .andWhere("created_at", "<", dateTwoDaysAgo)
+                //     .first()
 
                 const {balance_now} = balanceNow
                 const {balance_day_ago} = balanceDayAgo
-                const {balance_two_days_ago} = balanceTwoDaysAgo
+                //const {balance_two_days_ago} = balanceTwoDaysAgo
 
-                if (Number(balance_now) < 0) {
-                    if (Number(balance_day_ago) < 0) {
-                        if (Number(balance_two_days_ago < 0)) {
-                            logger.info(`Three days of negative balance for user #${user.id}, locking`)
-                            await knex("users")
-                                .transacting(trx)
-                                .where({id: user.id})
-                                .update({role: "VENDOR_NEGATIVE_BALANCE"})
+                if (Number(balance_now) < -2000) {
+                    logger.info(`-2000 of balance for user #${user.id}, locking`)
+                    await knex("users")
+                        .transacting(trx)
+                        .where({id: user.id})
+                        .update({role: "VENDOR_NEGATIVE_BALANCE"})
 
-                        }
+                        
+                    
+                }
+                if(Number(balance_day_ago) < 0){
+                    if (Number(balance_now) > 0) {
+                        logger.info(`> 0 of balance for user #${user.id}, unlocking`)
+                        await knex("users")
+                            .transacting(trx)
+                            .where({id: user.id})
+                            .update({role: "VENDOR"})
+
+
+
                     }
                 }
+
             }
         })
 
     }
 }
+
 
 
 module.exports = billDailyServices
