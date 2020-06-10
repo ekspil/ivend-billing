@@ -19,7 +19,7 @@ const scheduleTasks = async ({knex}) => {
     })
 
     // Every day at 01:00
-    cron.schedule("0 1 * * *", () => {
+    cron.schedule("* */4 * * *", () => {
         checkForNegativeBalance()
             .then(() => {
                 logger.info("Successfully checked for negative balances")

@@ -58,4 +58,8 @@
 
 * fix fiscal price
 
+# 1.0.14 - Release
+
+* only with sales telemetry
+
 
