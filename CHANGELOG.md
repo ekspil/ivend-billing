@@ -62,4 +62,8 @@
 
 * only with sales telemetry
 
+# 1.0.15 - Release
+
+* only with sales telemetry
+
 
