@@ -175,8 +175,14 @@ function Routes({fastify, knex, robokassaService}) {
             return {price: Number(controllerFiscalPriceRow.day_price)}
 
         } else {
+
+            Date.prototype.daysInMonth = function() {
+                return 33 - new Date(this.getFullYear(), this.getMonth(), 33).getDate()
+            }
+
+            
             reply.type("application/json").code(200)
-            return {price: Number(dayPriceResult.day_price)}
+            return {price: Number(dayPriceResult.day_price) + Number(-(kkts.length * 2000 / (new Date().daysInMonth())))}
 
         }
 

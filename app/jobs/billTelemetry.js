@@ -104,6 +104,24 @@ function billTelemetry({knex}) {
                             updated_at: new Date()
                         })
                 }
+
+                if (controllers.length === 0) {
+                    Date.prototype.daysInMonth = function() {
+                        return 33 - new Date(this.getFullYear(), this.getMonth(), 33).getDate()
+                    }
+
+
+                    await knex("transactions")
+                        .transacting(trx)
+                        .insert({
+                            amount: Number(-(kkts.length * 2000 / (new Date().daysInMonth()))),
+                            user_id: user.id,
+                            meta: `telemetry_NO_CONTROLLERS_USER_${user.id}`,
+                            created_at: new Date(),
+                            updated_at: new Date()
+                        })
+
+                }
             }
         })
 
