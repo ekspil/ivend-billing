@@ -182,7 +182,7 @@ function Routes({fastify, knex, robokassaService}) {
 
             
             reply.type("application/json").code(200)
-            return {price: Number(dayPriceResult.day_price) + Number(-(kkts.length * 2000 / (new Date().daysInMonth())))}
+            return {price: Number(dayPriceResult.day_price) + Number((kkts.length * 2000 / (new Date().daysInMonth())))}
 
         }
 
