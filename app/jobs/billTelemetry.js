@@ -114,7 +114,7 @@ function billTelemetry({knex}) {
                     await knex("transactions")
                         .transacting(trx)
                         .insert({
-                            amount: Number(-(kkts.length * 2000 / (new Date().daysInMonth()))),
+                            amount: Number(-(kktOk.length * 2000 / (new Date().daysInMonth()))),
                             user_id: user.id,
                             meta: `telemetry_NO_CONTROLLERS_USER_${user.id}`,
                             created_at: new Date(),

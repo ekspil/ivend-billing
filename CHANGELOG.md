@@ -66,4 +66,7 @@
 
 * only with sales telemetry
 
+# 1.0.16 - Release
+
+* hotfix
 
