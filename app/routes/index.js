@@ -159,7 +159,23 @@ function Routes({fastify, knex, robokassaService}) {
 
 
         const dayFiscalPrice = Number(dayFiscalPriceRow.day_fiscal_price)
-        const controllersWithSim = controllers.filter(controller => controller.simCardNumber && controller.simCardNumber !== "0" && controller.simCardNumber !== "false").length
+        for (let c of controllers){
+            if (c.simCardNumber && c.simCardNumber !== "0" && c.simCardNumber !== "false"){
+
+                const firstCashlessSale = await knex
+                    .from("sales")
+                    .first("id", "price")
+                    .where("machine_id", c.machine_id)
+                    .andWhere("type", "CASHLESS")
+                if(firstCashlessSale){
+                    c.cashless = true
+                }
+
+            }
+
+        }
+
+        const controllersWithSim = controllers.filter(controller => controller.simCardNumber && controller.cashless && controller.simCardNumber !== "0" && controller.simCardNumber !== "false").length
 
 
         if(controllers.length > 0){

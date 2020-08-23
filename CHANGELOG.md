@@ -74,3 +74,7 @@
 
 * hotfix
 
+# 1.0.18 - Hotfix
+
+* hotfix
+
