@@ -138,10 +138,10 @@ function Routes({fastify, knex, robokassaService}) {
         const kktOk = kkts.filter(kkt => kkt.kktActivationDate)
 
         const controllers = await knex
-            .select("controllers.user_id as user_id", "controllers.status as status", "controllers.id as controller_id", "controllers.sim_card_number as simCardNumber", "controllers.fiscalization_mode as fiscalizationMode")
             .from("controllers")
             .leftJoin("users", "controllers.user_id", "users.id")
             .join("machines", "controllers.id", "machines.controller_id")
+            .select("controllers.user_id as user_id", "controllers.status as status", "controllers.id as controller_id", "controllers.sim_card_number as simCardNumber", "controllers.fiscalization_mode as fiscalizationMode", "machines.id as machine_id")
             .where("controllers.user_id", userId)
             .where({
                 "controllers.user_id": userId,
