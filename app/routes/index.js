@@ -147,8 +147,8 @@ function Routes({fastify, knex, robokassaService}) {
                 "controllers.user_id": userId,
                 "controllers.status": "ENABLED"
             })
-            .whereNull("deleted_at")
-            .groupBy("controllers.id", "controllers.user_id")
+            .whereNull("controllers.deleted_at")
+            .groupBy("controllers.id", "controllers.user_id", "machines.id")
 
         const fiscalControllers = controllers.filter(controller => controller.fiscalizationMode !== "NO_FISCAL")
         const controllerCount = (kktOk.length == 0) ? 0 : Math.max(fiscalControllers.length, (Number(process.env.LOW_FISCAL_COST_LIMIT)* kktOk.length))
