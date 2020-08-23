@@ -141,6 +141,7 @@ function Routes({fastify, knex, robokassaService}) {
             .select("controllers.user_id as user_id", "controllers.status as status", "controllers.id as controller_id", "controllers.sim_card_number as simCardNumber", "controllers.fiscalization_mode as fiscalizationMode")
             .from("controllers")
             .leftJoin("users", "controllers.user_id", "users.id")
+            .join("machines", "controllers.id", "machines.controller_id")
             .where("controllers.user_id", userId)
             .where({
                 "controllers.user_id": userId,
