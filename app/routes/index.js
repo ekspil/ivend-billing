@@ -138,16 +138,17 @@ function Routes({fastify, knex, robokassaService}) {
         const kktOk = kkts.filter(kkt => kkt.kktActivationDate)
 
         const controllers = await knex
-            .select("controllers.user_id as user_id", "controllers.status as status", "controllers.id as controller_id", "controllers.sim_card_number as simCardNumber", "controllers.fiscalization_mode as fiscalizationMode")
             .from("controllers")
             .leftJoin("users", "controllers.user_id", "users.id")
+            .join("machines", "controllers.id", "machines.controller_id")
+            .select("controllers.user_id as user_id", "controllers.status as status", "controllers.id as controller_id", "controllers.sim_card_number as simCardNumber", "controllers.fiscalization_mode as fiscalizationMode", "machines.id as machine_id")
             .where("controllers.user_id", userId)
             .where({
                 "controllers.user_id": userId,
                 "controllers.status": "ENABLED"
             })
-            .whereNull("deleted_at")
-            .groupBy("controllers.id", "controllers.user_id")
+            .whereNull("controllers.deleted_at")
+            .groupBy("controllers.id", "controllers.user_id", "machines.id")
 
         const fiscalControllers = controllers.filter(controller => controller.fiscalizationMode !== "NO_FISCAL")
         const controllerCount = (kktOk.length == 0) ? 0 : Math.max(fiscalControllers.length, (Number(process.env.LOW_FISCAL_COST_LIMIT)* kktOk.length))
@@ -159,7 +160,23 @@ function Routes({fastify, knex, robokassaService}) {
 
 
         const dayFiscalPrice = Number(dayFiscalPriceRow.day_fiscal_price)
-        const controllersWithSim = controllers.filter(controller => controller.simCardNumber && controller.simCardNumber !== "0" && controller.simCardNumber !== "false").length
+        for (let c of controllers){
+            if (c.simCardNumber && c.simCardNumber !== "0" && c.simCardNumber !== "false"){
+
+                const firstCashlessSale = await knex
+                    .from("sales")
+                    .first("id", "price")
+                    .where("machine_id", c.machine_id)
+                    .andWhere("type", "CASHLESS")
+                if(firstCashlessSale){
+                    c.cashless = true
+                }
+
+            }
+
+        }
+
+        const controllersWithSim = controllers.filter(controller => controller.simCardNumber && controller.cashless && controller.simCardNumber !== "0" && controller.simCardNumber !== "false").length
 
 
         if(controllers.length > 0){

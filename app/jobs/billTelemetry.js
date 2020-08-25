@@ -74,12 +74,22 @@ function billTelemetry({knex}) {
                         .first("id", "price")
                         .where("machine_id", controller.machine_id)
 
+
                     if(!firstSale) continue
 
 
                     let terminal = 0
                     if(controller.simCardNumber && controller.simCardNumber !== "0" && controller.simCardNumber !== "false"){
-                        terminal = 1
+                        const firstCashlessSale = await knex
+                            .transacting(trx)
+                            .from("sales")
+                            .first("id", "price")
+                            .where("machine_id", controller.machine_id)
+                            .andWhere("type", "CASHLESS")
+                        if (firstCashlessSale){
+                            terminal = 1
+                        }
+
                     }
                     const controllerFiscalPriceRow = await knex("controllers")
                         .first(knex.raw("ROUND(:dayFiscalPrice::NUMERIC / :controllersLength::numeric + :dayPrice::numeric + :terminalPrice::numeric * :terminal::numeric, 2) as day_price", {
