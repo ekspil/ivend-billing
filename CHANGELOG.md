@@ -87,3 +87,7 @@
 
 * more speed for daily price
 
+# 1.0.21 - Hotfix
+
+* more speed for daily price
+
