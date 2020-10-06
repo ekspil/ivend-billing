@@ -138,7 +138,7 @@ function Routes({fastify, knex, robokassaService}) {
 
         const controllers = await knex
             .from("controllers")
-            .select("controllers.user_id as user_id", "controllers.status as status", "controllers.id as controller_id", "controllers.sim_card_number as simCardNumber", "controllers.fiscalization_mode as fiscalizationMode")
+            .select("controllers.user_id as user_id", "controllers.status as status", "controllers.id as controller_id", "controllers.sim_card_number as simCardNumber", "controllers.cashless as cashless", "controllers.fiscalization_mode as fiscalizationMode")
             .where({
                 "controllers.user_id": userId,
                 "controllers.status": "ENABLED"
@@ -151,7 +151,7 @@ function Routes({fastify, knex, robokassaService}) {
 
 
 
-        const controllersWithSim = controllers.filter(controller => controller.simCardNumber && controller.simCardNumber !== "0" && controller.simCardNumber !== "false").length
+        const controllersWithSim = controllers.filter(controller => controller.simCardNumber && controller.simCardNumber !== "0" && controller.cashless === "ON" && controller.simCardNumber !== "false").length
 
 
         if(controllers.length > 0){
