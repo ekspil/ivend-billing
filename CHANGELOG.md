@@ -82,3 +82,8 @@
 
 * hotfix
 
+
+# 1.0.20 - Hotfix
+
+* more speed for daily price
+
