@@ -91,3 +91,7 @@
 
 * more speed for daily price
 
+# 1.0.22 - Hotfix
+
+* more speed for start page
+
