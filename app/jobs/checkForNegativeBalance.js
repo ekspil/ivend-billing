@@ -59,9 +59,9 @@ function billDailyServices({knex}) {
                         
                     
                 }
-                if(Number(balance_day_ago) < 0){
-                    if (Number(balance_now) > 0) {
-                        logger.info(`> 0 of balance for user #${user.id}, unlocking`)
+                if(Number(balance_day_ago) < -100){
+                    if (Number(balance_now) > -100) {
+                        logger.info(`> -100 of balance for user #${user.id}, unlocking`)
                         await knex("users")
                             .transacting(trx)
                             .where({id: user.id})
