@@ -95,3 +95,7 @@
 
 * more speed for start page
 
+# 1.0.23 - Hotfix
+
+* more speed for start page
+
