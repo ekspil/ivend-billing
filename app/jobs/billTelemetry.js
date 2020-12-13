@@ -7,131 +7,114 @@ function billTelemetry({knex}) {
 
             const users = await knex("users")
                 .transacting(trx)
-                .select("id")
-                .where("role", "VENDOR")
+                .select("id", "partner_id")
+                .whereNot("role", "ADMIN")
 
             for (const user of users) {
                 const userId = user.id
-
-                const [dayPriceResult] = (await knex
-                    .raw("SELECT ROUND(:price::NUMERIC / (SELECT DATE_PART('days',  DATE_TRUNC('month', NOW())  + '1 MONTH'::INTERVAL  - '1 DAY'::INTERVAL))::numeric, 2) as day_price, controllers.user_id, controllers.status, controllers.id FROM controllers", {
-                        price: process.env.TELEMETRY_PRICE,
-                    })
-                    .transacting(trx)).rows
+                const partnerId = user.partner_id
 
 
-                const [terminalDayPriceResult] = (await knex
-                    .raw("SELECT ROUND(:price::NUMERIC / (SELECT DATE_PART('days',  DATE_TRUNC('month', NOW())  + '1 MONTH'::INTERVAL  - '1 DAY'::INTERVAL))::numeric, 2) as day_price", {
-                        price: Number(process.env.TERMINAL_PRICE),
-                    })).rows
+              Date.prototype.daysInMonth = function() {
+                return 33 - new Date(this.getFullYear(), this.getMonth(), 33).getDate()
+              }
+
+              const dayPriceResult = Number((Number(process.env.TELEMETRY_PRICE) / (new Date().daysInMonth())).toFixed(2))
+
+              const terminalDayPriceResult = Number((Number(process.env.TERMINAL_PRICE) / (new Date().daysInMonth())).toFixed(2))
 
 
-                const kkts = await knex
-                    .transacting(trx)
-                    .select("kkts.user_id as user_id", "kkts.kktActivationDate as kktActivationDate", "kkts.id as kkt_id")
-                    .from("kkts")
-                    .leftJoin("users", "kkts.user_id", "users.id")
-                    .where("kkts.user_id", userId)
-                    .groupBy("kkts.id", "kkts.user_id")
-
-                const kktOk = kkts.filter(kkt => kkt.kktActivationDate)
-
-                const controllers = await knex
-                    .transacting(trx)
-                    .from("controllers")
-                    .leftJoin("users", "controllers.user_id", "users.id")
-                    .join("machines", "controllers.id", "machines.controller_id")
-                    .select("controllers.user_id as user_id", "controllers.status as status", "controllers.sim_card_number as simCardNumber",  "controllers.id as controller_id", "controllers.fiscalization_mode as fiscalizationMode", "machines.id as machine_id")
-                    .where("controllers.user_id", userId)
-                    .where({
-                        "controllers.user_id": userId,
-                        "controllers.status": "ENABLED",
-                        "users.role": "VENDOR"
-                    })
-                    .whereNull("controllers.deleted_at")
-                    .groupBy("controllers.id", "controllers.user_id", "machines.id")
-
-                const fiscalControllers = controllers.filter(controller => controller.fiscalizationMode !== "NO_FISCAL")
+              const kktOk = await knex
+                .transacting(trx)
+                .select("kkts.user_id as user_id", "kkts.kktActivationDate as kktActivationDate", "kkts.id as kkt_id")
+                .from("kkts")
+                .where("kkts.user_id", userId)
+                .whereNot("kkts.kktActivationDate", "")
+                .whereNotNull("kkts.kktActivationDate")
 
 
 
-                const controllerCount = (kktOk.length == 0) ? 0 : Math.max(fiscalControllers.length, (Number(process.env.LOW_FISCAL_COST_LIMIT)* kktOk.length))
-                const dayFiscalPriceRow = await knex("controllers")
-                    .first(knex.raw("ROUND(:price::NUMERIC * :controllerCount::numeric, 2) as day_fiscal_price", {
-                        price: dayPriceResult.day_price,
-                        controllerCount
-                    }))
-                    .transacting(trx)
-                const dayFiscalPrice = dayFiscalPriceRow.day_fiscal_price
+              const controllers = await knex
+                .transacting(trx)
+                .from("controllers")
+                .select("controllers.user_id as user_id", "controllers.status as status", "controllers.id as controller_id", "controllers.sim_card_number as simCardNumber", "controllers.cashless as cashless", "controllers.fiscalization_mode as fiscalizationMode")
+                .where({
+                  "controllers.user_id": userId,
+                  "controllers.status": "ENABLED"
+                })
+                .whereNull("controllers.deleted_at")
 
 
-                for (const controller of controllers) {
-                    //counting price
-                    // Price / DaysInMonth
-                    const firstSale = await knex
-                        .transacting(trx)
-                        .from("sales")
-                        .first("id", "price")
-                        .where("machine_id", controller.machine_id)
+
+              const fiscalControllers = controllers.filter(controller => controller.fiscalizationMode !== "NO_FISCAL")
+              const controllerCount = (kktOk.length == 0) ? 0 : Math.max(fiscalControllers.length, (Number(process.env.LOW_FISCAL_COST_LIMIT)* kktOk.length))
+              const dayFiscalPrice = Number((Number(dayPriceResult) * controllerCount).toFixed(2))
+              const controllersWithSim = controllers.filter(controller => controller.simCardNumber && controller.simCardNumber !== "0" && controller.cashless === "ON" && controller.simCardNumber !== "false").length
 
 
-                    if(!firstSale) continue
 
 
-                    let terminal = 0
-                    if(controller.simCardNumber && controller.simCardNumber !== "0" && controller.simCardNumber !== "false"){
-                        const firstCashlessSale = await knex
-                            .transacting(trx)
-                            .from("sales")
-                            .first("id", "price")
-                            .where("machine_id", controller.machine_id)
-                            .andWhere("type", "CASHLESS")
-                        if (firstCashlessSale){
-                            terminal = 1
-                        }
+              let feeSettings = null
+              if(partnerId){
 
-                    }
-                    const controllerFiscalPriceRow = await knex("controllers")
-                        .first(knex.raw("ROUND(:dayFiscalPrice::NUMERIC / :controllersLength::numeric + :dayPrice::numeric + :terminalPrice::numeric * :terminal::numeric, 2) as day_price", {
-                            dayFiscalPrice,
-                            controllersLength: controllers.length,
-                            dayPrice: dayPriceResult.day_price,
-                            terminalPrice: Number(terminalDayPriceResult.day_price),
-                            terminal
-                        }))
-                        .transacting(trx)
-                    const dayPrice = controllerFiscalPriceRow.day_price
-
-                    logger.info(`Bill the User #${userId} for telemetry [ControllerID ${controller.controller_id}] for ${dayPrice} RUB`)
-
-                    await knex("transactions")
-                        .transacting(trx)
-                        .insert({
-                            amount: -dayPrice,
-                            user_id: controller.user_id,
-                            meta: `telemetry_${controller.controller_id}`,
-                            created_at: new Date(),
-                            updated_at: new Date()
-                        })
-                }
-
-                if (controllers.length === 0) {
-                    Date.prototype.daysInMonth = function() {
-                        return 33 - new Date(this.getFullYear(), this.getMonth(), 33).getDate()
-                    }
+                [feeSettings] = await knex
+                  .transacting(trx)
+                  .from("partner_settings")
+                  .select("user_id", "controller_fee", "terminal_fee", "kkm_fee")
+                  .where({
+                    "user_id": partnerId
+                  })
+              if(feeSettings){
+                const controllerFee = (dayPriceResult * controllers.length) * (Number(feeSettings.controller_fee)/100)
+                const terminalFee = (Number(controllersWithSim) * terminalDayPriceResult) * (Number(feeSettings.terminal_fee)/100)
+                const kkmFee = Number(dayFiscalPrice) * (Number(feeSettings.kkm_fee)/100)
 
 
-                    await knex("transactions")
-                        .transacting(trx)
-                        .insert({
-                            amount: Number(-(kktOk.length * 2000 / (new Date().daysInMonth()))),
-                            user_id: user.id,
-                            meta: `telemetry_NO_CONTROLLERS_USER_${user.id}`,
-                            created_at: new Date(),
-                            updated_at: new Date()
-                        })
+                await knex("partner_fee")
+                  .transacting(trx)
+                  .insert({
+                    controller_fee: controllerFee,
+                    terminal_fee: terminalFee,
+                    kkm_fee: kkmFee,
+                    user_id: userId,
+                    partner_id: partnerId,
+                    created_at: new Date(),
+                    updated_at: new Date()
+                  })
+              }
 
-                }
+              }
+
+
+              if(controllers.length > 0){
+                const controllerFiscalPriceRow = Number((dayFiscalPrice + dayPriceResult * controllers.length + Number(controllersWithSim) * terminalDayPriceResult).toFixed(2))
+
+                await knex("transactions")
+                  .transacting(trx)
+                  .insert({
+                    amount: -controllerFiscalPriceRow,
+                    user_id: user.id,
+                    meta: `telemetry_USER_${user.id}`,
+                    created_at: new Date(),
+                    updated_at: new Date()
+                  })
+
+              } else {
+
+
+                const priceNoControllers = Number((kktOk.length * 2000 / (new Date().daysInMonth())).toFixed(2))
+
+                await knex("transactions")
+                  .transacting(trx)
+                  .insert({
+                    amount: -priceNoControllers,
+                    user_id: user.id,
+                    meta: `telemetry_NO_CONTROLLERS_USER_${user.id}`,
+                    created_at: new Date(),
+                    updated_at: new Date()
+                  })
+              }
+
             }
         })
 
