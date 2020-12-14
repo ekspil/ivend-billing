@@ -70,7 +70,7 @@ function billTelemetry({knex}) {
                         const kkmFee = Number(dayFiscalPrice) * (Number(feeSettings.kkm_fee)/100)
 
 
-                        await knex("partner_fee")
+                        await knex("partner_fees")
                             .transacting(trx)
                             .insert({
                                 controller_fee: controllerFee,
