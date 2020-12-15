@@ -99,3 +99,7 @@
 
 * more speed for start page
 
+# 1.1.1 - Release
+
+* partner billing
+
