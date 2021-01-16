@@ -34,7 +34,7 @@ const scheduleTasks = async ({knex}) => {
     })
 
     // Every day at 00:00
-    cron.schedule("0 1 * * *", () => {
+    cron.schedule("0 3 * * *", () => {
         billTelemetry()
             .then(() => {
                 logger.info("Successfully billed telemetry for current day")
