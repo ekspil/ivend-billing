@@ -107,3 +107,7 @@
 
 * new billing time
 
+# 1.1.3 - Release
+
+* new billing time
+
