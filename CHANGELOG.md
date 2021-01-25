@@ -111,3 +111,8 @@
 
 * new billing time
 
+
+# 1.1.4 - Release
+
+* new billing options
+
