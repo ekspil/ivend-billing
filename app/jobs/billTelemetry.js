@@ -7,12 +7,21 @@ function billTelemetry({knex}) {
 
             const users = await knex("users")
                 .transacting(trx)
-                .select("id", "partner_id")
-                .whereNot("role", "ADMIN")
+                .leftJoin("temps", "users.id", "temps.user_id")
+                .select("users.id as id", "users.partner_id as partner_id", "temps.amount as balance")
+                .whereNot("users.role", "ADMIN")
+
+            const statistic = {
+                amount: 0,
+                balance: 0,
+                credit: 0
+            }
 
             for (const user of users) {
                 const userId = user.id
                 const partnerId = user.partner_id
+
+
 
 
                 Date.prototype.daysInMonth = function() {
@@ -88,6 +97,14 @@ function billTelemetry({knex}) {
 
                 if(controllers.length > 0){
                     const controllerFiscalPriceRow = Number((dayFiscalPrice + dayPriceResult * controllers.length + Number(controllersWithSim) * terminalDayPriceResult).toFixed(2))
+                    statistic.amount = Number(statistic.amount) + Number(controllerFiscalPriceRow)
+                    let newBalance = Number(user.balance) - Number(controllerFiscalPriceRow)
+                    if(newBalance > 0) {
+                        statistic.balance = Number(statistic.balance) + Number(newBalance)
+                    }
+                    else {
+                        statistic.credit = Number(statistic.credit) + Number(newBalance)
+                    }
 
                     await knex("transactions")
                         .transacting(trx)
@@ -103,6 +120,14 @@ function billTelemetry({knex}) {
 
 
                     const priceNoControllers = Number((kktOk.length * 2000 / (new Date().daysInMonth())).toFixed(2))
+                    statistic.amount = Number(statistic.amount) + Number(priceNoControllers)
+                    let newBalance = Number(user.balance) - Number(priceNoControllers)
+                    if(newBalance > 0) {
+                        statistic.balance = Number(statistic.balance) + Number(newBalance)
+                    }
+                    else {
+                        statistic.credit = Number(statistic.credit) + Number(newBalance)
+                    }
 
                     await knex("transactions")
                         .transacting(trx)
@@ -116,6 +141,23 @@ function billTelemetry({knex}) {
                 }
 
             }
+
+
+            await knex("admin_statistics")
+                .transacting(trx)
+                .insert({
+                    billing_amount: statistic.amount,
+                    billing_balance: statistic.balance,
+                    billing_credit: statistic.credit,
+                    controllers_count: 0,
+                    controllers_disabled: 0,
+                    controllers_disconnected: 0,
+                    kkts_count: 0,
+                    kkts_normal: 0,
+                    kkts_error: 0,
+                    created_at: new Date(),
+                    updated_at: new Date()
+                })
         })
 
     }
