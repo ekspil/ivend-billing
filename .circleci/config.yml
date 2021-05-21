@@ -57,9 +57,7 @@ jobs:
   deploy_develop:
     docker:
       - image: circleci/node:11.1.0
-
     working_directory: ~/repo
-
     steps:
       - run:
           name: Deploy
@@ -74,20 +72,25 @@ jobs:
             yc managed-kubernetes cluster get-credentials --id $YC_K8S_CLUSTER_ID --external
             sudo install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
             kubectl set image deployment/billing billing=cr.yandex/$YC_REGISTRY_ID/billing:$CIRCLE_SHA1 --namespace development
+
   deploy_production:
     docker:
       - image: circleci/node:11.1.0
-
     working_directory: ~/repo
-
     steps:
-      - add_ssh_keys:
-          fingerprints:
-            - "3a:2c:53:af:57:c9:dd:eb:85:56:c6:b8:eb:fb:f5:4a"
       - run:
           name: Deploy
-          command: ssh-keyscan -H $DEPLOY_SERVER >> ~/.ssh/known_hosts && ssh deploy@$DEPLOY_SERVER 'cd /opt/billing && git checkout master && git pull && kubectl apply -f production-kube-config.yml'
-
+          command: |
+            curl https://storage.yandexcloud.net/yandexcloud-yc/install.sh | bash
+            export PATH=$PATH:/home/circleci/yandex-cloud/bin/
+            curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+            sudo install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
+            echo $YC_SERVICE_ACCOUNT > /tmp/key.json
+            yc config profile create sa-profile
+            yc config set service-account-key /tmp/key.json
+            yc managed-kubernetes cluster get-credentials --id $YC_K8S_CLUSTER_ID --external
+            sudo install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
+            kubectl apply -f production-kube-config.yaml
 
 workflows:
   version: 2
