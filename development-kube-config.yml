@@ -23,7 +23,7 @@ spec:
     spec:
       containers:
       - name: billing
-        image: registry.gitlab.com/pshenmic/ivend/billing:$CIRCLE_SHA1
+        image: cr.yandex/crpfb8t478v3of681kce/billing:latest
         imagePullPolicy: Always
         ports:
           - containerPort: 3500
