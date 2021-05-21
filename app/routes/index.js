@@ -188,3 +188,4 @@ function Routes({fastify, knex, robokassaService}) {
 }
 
 module.exports = Routes
+
