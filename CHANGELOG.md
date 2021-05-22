@@ -116,3 +116,8 @@
 
 * new billing options
 
+
+# 1.1.5 - Release
+
+* Move to Yandex Cloud
+
