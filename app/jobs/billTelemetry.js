@@ -9,12 +9,29 @@ function billTelemetry({knex}) {
                 .transacting(trx)
                 .leftJoin("temps", "users.id", "temps.user_id")
                 .select("users.id as id", "users.partner_id as partner_id", "temps.amount as balance")
-                .whereNot("users.role", "ADMIN")
+                .whereNotIn("users.role", ["ADMIN", "PARTNER"])
+                .whereNull("users.partner_id")
 
             const statistic = {
                 amount: 0,
                 balance: 0,
                 credit: 0
+            }
+
+            let [tariff] = await knex("tariffs")
+                .transacting(trx)
+                .select("telemetry", "acquiring", "fiscal", "partner_id", "started_at")
+                .where("partner_id", 0)
+                .andWhere("started_at", "<", new Date())
+                .orderBy("id", "desc")
+                .limit(1)
+
+            if(!tariff){
+                tariff = {
+                    fiscal: 2000,
+                    telemetry: process.env.TELEMETRY_PRICE,
+                    acquiring: process.env.TERMINAL_PRICE
+                }
             }
 
             for (const user of users) {
@@ -28,9 +45,9 @@ function billTelemetry({knex}) {
                     return 33 - new Date(this.getFullYear(), this.getMonth(), 33).getDate()
                 }
 
-                const dayPriceResult = Number((Number(process.env.TELEMETRY_PRICE) / (new Date().daysInMonth())).toFixed(2))
+                const dayPriceResult = Number((Number(tariff.telemetry) / (new Date().daysInMonth())).toFixed(2))
 
-                const terminalDayPriceResult = Number((Number(process.env.TERMINAL_PRICE) / (new Date().daysInMonth())).toFixed(2))
+                const terminalDayPriceResult = Number((Number(tariff.acquiring) / (new Date().daysInMonth())).toFixed(2))
 
 
                 const kktOk = await knex
@@ -119,7 +136,7 @@ function billTelemetry({knex}) {
                 } else {
 
 
-                    const priceNoControllers = Number((kktOk.length * 2000 / (new Date().daysInMonth())).toFixed(2))
+                    const priceNoControllers = Number((kktOk.length * Number(tariff.fiscal) / (new Date().daysInMonth())).toFixed(2))
                     statistic.amount = Number(statistic.amount) + Number(priceNoControllers)
                     let newBalance = Number(user.balance) - Number(priceNoControllers)
                     if(newBalance > 0) {
