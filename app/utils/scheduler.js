@@ -3,6 +3,7 @@ const logger = require("my-custom-logger")
 
 const scheduleTasks = async ({knex}) => {
     const billTelemetry = require("../jobs/billTelemetry")({knex})
+    const billTelemetryPartner = require("../jobs/billTelemetryPartner")({knex})
     const checkForNegativeBalance = require("../jobs/checkForNegativeBalance")({knex})
     const fastSalesUpdate = require("../jobs/fastSalesUpdate")({knex})
     const yesterdaySalesUpdate = require("../jobs/yesterdaySalesUpdate")({knex})
@@ -33,7 +34,7 @@ const scheduleTasks = async ({knex}) => {
             })
     })
 
-    // Every day at 00:00
+    // Every day at 03:00
     cron.schedule("0 3 * * *", () => {
         billTelemetry()
             .then(() => {
@@ -41,6 +42,19 @@ const scheduleTasks = async ({knex}) => {
             })
             .catch((e) => {
                 logger.error("Failed to bill telemetry for current day")
+                logger.error(e)
+                //TODO notificate
+            })
+    })
+
+    // Every day at 01:00
+    cron.schedule("0 1 * * *", () => {
+        billTelemetryPartner()
+            .then(() => {
+                logger.info("Successfully billed partner telemetry for current day")
+            })
+            .catch((e) => {
+                logger.error("Failed to bill partner telemetry for current day")
                 logger.error(e)
                 //TODO notificate
             })
