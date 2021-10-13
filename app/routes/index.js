@@ -117,14 +117,50 @@ function Routes({fastify, knex, robokassaService}) {
         }
 
         const {service, userId} = request.params
+        let partnerId = 0
 
         if (service !== "TELEMETRY") {
             return reply.type("application/json").code(404).send({message: "Not found"})
         }
 
-        const dayPriceResult = Number((Number(process.env.TELEMETRY_PRICE) / (new Date().daysInMonth())).toFixed(2))
 
-        const terminalDayPriceResult = Number((Number(process.env.TERMINAL_PRICE) / (new Date().daysInMonth())).toFixed(2))
+        const [user] = await knex("users")
+            .select("id", "partner_id", "role")
+            .where("id", userId)
+            .limit(1)
+
+        if(!user){
+            return reply.type("application/json").code(404).send({message: "User not found"})
+        }
+
+        if(user.role === "PARTNER") partnerId = user.id
+        if(user.partner_id) partnerId = user.partner_id
+
+
+        let [tariff] = await knex("tariffs")
+            .select("telemetry", "acquiring", "fiscal", "partner_id", "started_at")
+            .where("partner_id", Number(partnerId))
+            .andWhere("started_at", "<", new Date())
+            .orderBy("id", "desc")
+            .limit(1)
+
+        if(!tariff){
+            tariff = {
+                fiscal: 2000,
+                telemetry: process.env.TELEMETRY_PRICE,
+                acquiring: process.env.TERMINAL_PRICE
+            }
+        }
+
+
+
+
+
+
+        const dayPriceResult = Number((Number(tariff.telemetry) / (new Date().daysInMonth())).toFixed(2))
+
+        const terminalDayPriceResult = Number((Number(tariff.acquiring) / (new Date().daysInMonth())).toFixed(2))
+        const fiscalDayPriceResult = Number((Number(tariff.fiscal) / (new Date().daysInMonth())).toFixed(2))
 
 
         const kktOk = await knex
@@ -147,7 +183,7 @@ function Routes({fastify, knex, robokassaService}) {
 
         const fiscalControllers = controllers.filter(controller => controller.fiscalizationMode !== "NO_FISCAL")
         const controllerCount = (kktOk.length == 0) ? 0 : Math.max(fiscalControllers.length, (Number(process.env.LOW_FISCAL_COST_LIMIT)* kktOk.length))
-        const dayFiscalPrice = Number((Number(dayPriceResult) * controllerCount).toFixed(2))
+        const dayFiscalPrice = Number((Number(fiscalDayPriceResult) / Number(process.env.LOW_FISCAL_COST_LIMIT)  * controllerCount).toFixed(2))
 
 
 
@@ -163,10 +199,53 @@ function Routes({fastify, knex, robokassaService}) {
 
 
             reply.type("application/json").code(200)
-            return {price: Number((kktOk.length * 2000 / (new Date().daysInMonth())).toFixed(2))}
+            return {price: Number((kktOk.length * Number(tariff.fiscal) / (new Date().daysInMonth())).toFixed(2))}
 
         }
 
+
+
+    }
+
+    const getTariff = async (request, reply) => {
+        const {service, userId} = request.params
+        let partnerId = 0
+
+        if (service !== "TELEMETRY") {
+            return reply.type("application/json").code(404).send({message: "Not found"})
+        }
+
+
+        const [user] = await knex("users")
+            .select("id", "partner_id", "role")
+            .where("id", userId)
+            .limit(1)
+
+        if(!user){
+            return reply.type("application/json").code(404).send({message: "User not found"})
+        }
+
+        if(user.role === "PARTNER") partnerId = user.id
+        if(user.partner_id) partnerId = user.partner_id
+
+
+        let [tariff] = await knex("tariffs")
+            .select("telemetry", "acquiring", "fiscal", "partner_id", "started_at")
+            .where("partner_id", Number(partnerId))
+            .andWhere("started_at", "<", new Date())
+            .orderBy("id", "desc")
+            .limit(1)
+
+        if(!tariff){
+            tariff = {
+                fiscal: 2000,
+                telemetry: process.env.TELEMETRY_PRICE,
+                acquiring: process.env.TERMINAL_PRICE
+            }
+        }
+
+        reply.type("application/json").code(200)
+        return tariff
 
 
     }
@@ -176,6 +255,7 @@ function Routes({fastify, knex, robokassaService}) {
     fastify.post("/api/v1/billing/createPayment", createPayment)
     fastify.get("/api/v1/status", status)
     fastify.get("/api/v1/service/:service/price/daily/:userId", servicePriceDaily)
+    fastify.get("/api/v1/service/:service/price/tariff/:userId", getTariff)
     fastify.get("/api/v1/service/balance/change/:userId/:sum", changeUserBalance)
 
     fastify.post("/api/v1/callback/robokassa", robokassaCallback)
