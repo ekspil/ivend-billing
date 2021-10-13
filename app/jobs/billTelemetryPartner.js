@@ -62,7 +62,7 @@ function billTelemetryPartner({knex}) {
                     const dayPriceResult = Number((Number(tariff.telemetry) / (new Date().daysInMonth())).toFixed(2))
 
                     const terminalDayPriceResult = Number((Number(tariff.acquiring) / (new Date().daysInMonth())).toFixed(2))
-
+                    const fiscalDayPriceResult = Number((Number(tariff.fiscal) / (new Date().daysInMonth())).toFixed(2))
 
                     const kktOk = await knex
                         .transacting(trx)
@@ -88,7 +88,7 @@ function billTelemetryPartner({knex}) {
 
                     const fiscalControllers = controllers.filter(controller => controller.fiscalizationMode !== "NO_FISCAL")
                     const controllerCount = (kktOk.length == 0) ? 0 : Math.max(fiscalControllers.length, (Number(process.env.LOW_FISCAL_COST_LIMIT)* kktOk.length))
-                    const dayFiscalPrice = Number((Number(dayPriceResult) * controllerCount).toFixed(2))
+                    const dayFiscalPrice = Number((Number(fiscalDayPriceResult) / Number(process.env.LOW_FISCAL_COST_LIMIT)  * controllerCount).toFixed(2))
                     const controllersWithSim = controllers.filter(controller => controller.simCardNumber && controller.simCardNumber !== "0" && controller.cashless === "ON" && controller.simCardNumber !== "false").length
 
 
