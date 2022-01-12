@@ -7,6 +7,7 @@ const scheduleTasks = async ({knex}) => {
     const checkForNegativeBalance = require("../jobs/checkForNegativeBalance")({knex})
     const fastSalesUpdate = require("../jobs/fastSalesUpdate")({knex})
     const yesterdaySalesUpdate = require("../jobs/yesterdaySalesUpdate")({knex})
+    const checkForBills = require("../jobs/checkForBills")({knex})
 
 
     // Every day at 00:00
@@ -55,6 +56,19 @@ const scheduleTasks = async ({knex}) => {
             })
             .catch((e) => {
                 logger.error("Failed to bill partner telemetry for current day")
+                logger.error(e)
+                //TODO notificate
+            })
+    })
+
+    // Ежедневная проверка поступлений
+    cron.schedule("*/30 * * * *", () => {
+        checkForBills()
+            .then(() => {
+                logger.info("Successfully checked for bank payments")
+            })
+            .catch((e) => {
+                logger.error("Failed to check bank payments")
                 logger.error(e)
                 //TODO notificate
             })

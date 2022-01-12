@@ -122,8 +122,11 @@
 * Move to Yandex Cloud
 
 
-
 # 1.1.6 - Release
 
 * partner billing
+
+# 1.1.7 - Release
+
+* bank payments added
 
