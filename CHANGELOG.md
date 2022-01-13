@@ -130,3 +130,9 @@
 
 * bank payments added
 
+
+
+# 1.1.8 - Release
+
+* bank payments added
+

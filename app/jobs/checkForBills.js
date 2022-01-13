@@ -12,6 +12,7 @@ function getDate(){
 
 function billDailyServices({knex}) {
     return async () => {
+        logger.info(`BILLING_BANK_REQUEST_${getDate()}`)
 
         const urlStatement = "https://enter.tochka.com//api/v1/statement"
 
@@ -34,7 +35,7 @@ function billDailyServices({knex}) {
         }
 
         const resultStatement = await fetch(urlStatement, optsStatement)
-
+        logger.info(`BILLING_BANK_REQUEST_STATUS1_${resultStatement.status}`)
         const jsonStatement = await resultStatement.json()
         const request_id = jsonStatement.request_id
 
@@ -44,6 +45,7 @@ function billDailyServices({knex}) {
                 "Authorization": "Bearer " + process.env.BANK_TOKEN
             },
         })
+        logger.info(`BILLING_BANK_REQUEST_STATUS2_${result.status}`)
         const json = await result.json()
         if(!json.payments || json.payments.length < 1) return
 
@@ -59,7 +61,7 @@ function billDailyServices({knex}) {
 
             const num = string.split(" ").find(item => item.includes(subString))
 
-            const orderId = num.replace(/[^\d.-]/g, "")
+            const orderId = Number(num.replace(/[^\d.-]/g, ""))
 
             await knex.transaction(async (trx) => {
 
