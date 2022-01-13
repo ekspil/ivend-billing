@@ -1,7 +1,7 @@
 const logger = require("my-custom-logger")
 const fetch = require("node-fetch")
 function getDate(){
-    const date = new Date(Date.now()-3600000)
+    const date = new Date(Date.now())
     const year = date.getFullYear()
     let month = String(date.getMonth() + 1)
     let day = String(date.getDate())
