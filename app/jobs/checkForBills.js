@@ -39,6 +39,15 @@ function billDailyServices({knex}) {
         const jsonStatement = await resultStatement.json()
         const request_id = jsonStatement.request_id
 
+        const timer = async () => {
+
+            return new Promise(async (resolve)=>{
+                setTimeout(()=>{
+                    resolve()},5000)
+            })
+        }
+        await timer()
+
         const result = await fetch("https://enter.tochka.com/api/v1/statement/result/" + request_id, {
             method: "GET",
             headers: {

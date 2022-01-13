@@ -23,7 +23,7 @@ spec:
     spec:
       containers:
       - name: billing
-        image: cr.yandex/crpfb8t478v3of681kce/billing:1.1.10
+        image: cr.yandex/crpfb8t478v3of681kce/billing:1.1.11
         imagePullPolicy: Always
         ports:
           - containerPort: 3500
