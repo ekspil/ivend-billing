@@ -47,6 +47,7 @@ function billDailyServices({knex}) {
         })
         logger.info(`BILLING_BANK_REQUEST_STATUS2_${result.status}`)
         const json = await result.json()
+        logger.info(`BILLING_BANK_REQUEST_PAY_${JSON.stringify(json)}`)
         if(!json.payments || json.payments.length < 1) return
 
         const payments = json.payments.filter(item => {

@@ -136,5 +136,9 @@
 
 # 1.1.9 - Release
 
+* bank payments 
+
+# 1.1.10 - Release
+
 * bank payments added
 
