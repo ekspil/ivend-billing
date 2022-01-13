@@ -56,7 +56,6 @@ function billDailyServices({knex}) {
         })
         logger.info(`BILLING_BANK_REQUEST_STATUS2_${result.status}`)
         const json = await result.json()
-        logger.info(`BILLING_BANK_REQUEST_PAY_${JSON.stringify(json)}`)
         if(!json.payments || json.payments.length < 1) return
 
         const payments = json.payments.filter(item => {
@@ -65,7 +64,6 @@ function billDailyServices({knex}) {
         })
 
         for( let pay of payments){
-            logger.info(`BILLING_BANK_REQUEST_PAY_${JSON.stringify(pay)}`)
             const subString = "VFT"
             const string = pay.payment_purpose.toUpperCase()
             if( !string.includes(subString)) continue
@@ -89,7 +87,6 @@ function billDailyServices({knex}) {
                     return false
                 }
 
-                logger.info(`BILLING_BANK_REQUEST_BANK_PAYMENT_${JSON.stringify(bank_payment)}`)
 
 
                 await knex("bank_payments")
