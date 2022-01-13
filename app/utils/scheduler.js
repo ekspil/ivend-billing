@@ -62,7 +62,7 @@ const scheduleTasks = async ({knex}) => {
     })
 
     // Ежедневная проверка поступлений
-    cron.schedule("*/30 * * * *", () => {
+    cron.schedule("*/15 * * * *", () => {
         checkForBills()
             .then(() => {
                 logger.info("Successfully checked for bank payments")

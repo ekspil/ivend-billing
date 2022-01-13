@@ -1,7 +1,7 @@
 const logger = require("my-custom-logger")
 const fetch = require("node-fetch")
 function getDate(){
-    const date = new Date(Date.now())
+    const date = new Date(Date.now()-3600000)
     const year = date.getFullYear()
     let month = String(date.getMonth() + 1)
     let day = String(date.getDate())
@@ -55,6 +55,7 @@ function billDailyServices({knex}) {
         })
 
         for( let pay of payments){
+            logger.info(`BILLING_BANK_REQUEST_PAY_${JSON.stringify(pay)}`)
             const subString = "VFT"
             const string = pay.payment_purpose.toUpperCase()
             if( !string.includes(subString)) continue
@@ -77,6 +78,9 @@ function billDailyServices({knex}) {
                     logger.info(`billing_bank_integration_error bill_not_found VFT${orderId}`)
                     return false
                 }
+
+                logger.info(`BILLING_BANK_REQUEST_BANK_PAYMENT_${JSON.stringify(bank_payment)}`)
+
 
                 await knex("bank_payments")
                     .transacting(trx)
