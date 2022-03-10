@@ -2,16 +2,52 @@
 function updateFastSales({knex}) {
     return async () => {
         return knex.transaction(async (trx) => {
-            const day = new Date().getDate()
-            const month = new Date().getMonth()
-            const year = new Date().getFullYear()
+            const day = new Date().getUTCDate()
+            const month = new Date().getUTCMonth()
+            const year = new Date().getUTCFullYear()
 
-            const to = new Date(year, month, day-1, 23, 59, 59)
-            const from = new Date(year, month, day-1, 0, 0, 0)
 
-            const users = await knex("users")
-                .transacting(trx)
-                .select("id")
+
+            let hour = 24 - new Date().getUTCHours()
+            if(hour === 24) hour = 0
+            const timeZone = String(hour)
+
+            const to = new Date()
+            to.setUTCFullYear(year)
+            to.setUTCMonth(month)
+            to.setUTCDate(day-1)
+            to.setUTCHours(23 - hour)
+            to.setUTCMinutes(59)
+            to.setUTCSeconds(59)
+            const from = new Date()
+            from.setUTCFullYear(year)
+            from.setUTCMonth(month)
+            from.setUTCDate(day-1)
+            from.setUTCHours(0 - hour)
+            from.setUTCMinutes(0)
+            from.setUTCSeconds(0)
+
+
+            let users
+
+            if(hour === 3){
+                users = await knex("users")
+                    .transacting(trx)
+                    .leftJoin("legal_infos", "users.legal_info_id", "legal_infos.id")
+                    .select("users.id as id", "legal_infos.timeZone as timeZone")
+                    .whereNull("legal_infos.timeZone")
+                    .orWhere("legal_infos.timeZone", timeZone)
+
+            }
+            else {
+                users = await knex("users")
+                    .transacting(trx)
+                    .leftJoin("legal_infos", "users.legal_info_id", "legal_infos.id")
+                    .select("users.id as id", "legal_infos.timeZone as timeZone")
+                    .where("legal_infos.timeZone", timeZone)
+            }
+
+            if(!users || users.length === 0) return
 
             for (let user of users){
                 const machines = await knex("machines")

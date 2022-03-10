@@ -11,25 +11,25 @@ const scheduleTasks = async ({knex}) => {
 
 
     // Every day at 00:00
-    cron.schedule("0 21 * * *", () => {
+    cron.schedule("*/60 * * * *", () => {
         fastSalesUpdate()
             .then(() => {
-                logger.info("Successfully updated fast sales table for current day")
+                logger.info("Successfully updated fast sales table for time zone " + String(24 - new Date().getUTCHours()))
             })
             .catch((e) => {
-                logger.error("Failed to update fast sales table for current day")
+                logger.error("Failed to update fast sales table for time zone " + String(24 - new Date().getUTCHours()))
                 logger.error(e)
                 //TODO notificate
             })
     })
     // Every day at 00:01
-    cron.schedule("00 21 * * *", () => {
+    cron.schedule("*/60 * * * *", () => {
         yesterdaySalesUpdate()
             .then(() => {
-                logger.info("Successfully updated fast sales table for yesterday")
+                logger.info("Successfully updated fast sales table for yesterday for time zone " + String(24 - new Date().getUTCHours()))
             })
             .catch((e) => {
-                logger.error("Failed to update fast sales table for yesterday")
+                logger.error("Failed to update fast sales table for yesterday for time zone " + String(24 - new Date().getUTCHours()))
                 logger.error(e)
                 //TODO notificate
             })
