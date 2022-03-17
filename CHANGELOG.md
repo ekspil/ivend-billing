@@ -164,3 +164,8 @@
 # 1.1.15 - Hotfix
 
 * hotfix
+
+
+# 1.1.16 - Hotfix
+
+* hotfix
