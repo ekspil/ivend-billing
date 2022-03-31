@@ -37,7 +37,7 @@ function Routes({fastify, knex, robokassaService}) {
                 throw new Error("DepositNotFound")
             }
 
-            logger.info("Robokassa approved payment for ${paymentRequest.to}, amount ${deposit.amount}")
+            logger.info(`Robokassa approved payment for ${paymentRequest.to}, amount ${deposit.amount}`)
 
             await knex("transactions")
                 .transacting(trx)
