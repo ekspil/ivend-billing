@@ -170,7 +170,10 @@
 
 * hotfix
 
-
 # 1.1.17 - Hotfix
+
+* hotfix
+
+# 1.1.18 - Hotfix
 
 * hotfix
