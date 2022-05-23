@@ -120,13 +120,13 @@ function billDailyServices({knex}) {
                         created_at: new Date(),
                         updated_at: new Date()
                     })
-                
+
 
                 await knex("deposits")
                     .transacting(trx)
                     .insert({
                         amount: Number(pay.payment_amount),
-                        payment_request_id: paymentRequestId,
+                        payment_request_id: Number(paymentRequestId),
                         user_id: Number(bank_payment.user_id),
                         created_at: new Date(),
                         updated_at: new Date()
