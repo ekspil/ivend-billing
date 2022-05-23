@@ -1,5 +1,6 @@
 const logger = require("my-custom-logger")
 const fetch = require("node-fetch")
+const PaymentStatus = require("../enums/PaymentStatus")
 function getDate(){
     const date = new Date(Date.now())
     const year = date.getFullYear()
@@ -97,8 +98,9 @@ function billDailyServices({knex}) {
                     })
                     .where("id", Number(orderId))
 
-                await knex("transactions")
+                const [TrId] = await knex("transactions")
                     .transacting(trx)
+                    .returning("id")
                     .insert({
                         amount: Number(pay.payment_amount),
                         user_id: Number(bank_payment.user_id),
@@ -106,6 +108,30 @@ function billDailyServices({knex}) {
                         created_at: new Date(),
                         updated_at: new Date()
                     })
+
+                const [paymentRequestId] = await knex("payment_requests")
+                    .transacting(trx)
+                    .returning("id")
+                    .insert({
+                        payment_id: "BANK_AUTO-" + TrId,
+                        redirect_url: "BANK_AUTO-" + TrId,
+                        status: PaymentStatus.SUCCEEDED,
+                        to: "none",
+                        created_at: new Date(),
+                        updated_at: new Date()
+                    })
+                
+
+                await knex("deposits")
+                    .transacting(trx)
+                    .insert({
+                        amount: Number(pay.payment_amount),
+                        payment_request_id: paymentRequestId,
+                        user_id: Number(bank_payment.user_id),
+                        created_at: new Date(),
+                        updated_at: new Date()
+                    })
+
 
                 logger.info(`billing_bank_integration_success bill: VFT${orderId}, user: ${bank_payment.user_id}, amount: ${pay.payment_amount}`)
 

@@ -177,3 +177,8 @@
 # 1.1.18 - Hotfix
 
 * hotfix
+
+
+# 1.1.19 - Hotfix
+
+* add deposits of bank payments
