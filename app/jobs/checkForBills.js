@@ -68,8 +68,20 @@ function billDailyServices({knex}) {
             const subString = "VFT"
             const string = pay.payment_purpose.toUpperCase()
             if( !string.includes(subString)) continue
+            let finded = false
+            const num = string.split(" ").find(item => {
+                if(finded) {
+                    finded = false
+                    return true
+                }
+                if (item.includes(subString) && item !== subString) return true
+                if (item.includes(subString) && item === subString) {
+                    finded = true
+                    return false
+                }
 
-            const num = string.split(" ").find(item => item.includes(subString))
+                return false
+            })
 
             const orderId = Number(num.replace(/[^\d.-]/g, ""))
 

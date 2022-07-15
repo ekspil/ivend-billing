@@ -182,3 +182,7 @@
 # 1.1.19 - Hotfix
 
 * add deposits of bank payments
+
+# 1.1.20 - Hotfix
+
+* bank bill number identification fix
