@@ -75,7 +75,7 @@ function billTelemetry({knex}) {
                 const fiscalControllers = controllers.filter(controller => controller.fiscalizationMode !== "NO_FISCAL")
                 const controllerCount = (kktOk.length == 0) ? 0 : Math.max(fiscalControllers.length, (Number(process.env.LOW_FISCAL_COST_LIMIT)* kktOk.length))
                 const dayFiscalPrice = Number((Number(fiscalDayPriceResult) / Number(process.env.LOW_FISCAL_COST_LIMIT)  * controllerCount).toFixed(2))
-                const controllersWithSim = controllers.filter(controller => controller.simCardNumber && controller.simCardNumber !== "0" && controller.cashless === "ON" && controller.simCardNumber !== "false").length
+                const controllersWithSim = controllers.filter(controller => controller.cashless === "ON").length
 
 
 

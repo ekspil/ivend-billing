@@ -187,7 +187,7 @@ function Routes({fastify, knex, robokassaService}) {
 
 
 
-        const controllersWithSim = controllers.filter(controller => controller.simCardNumber && controller.simCardNumber !== "0" && controller.cashless === "ON" && controller.simCardNumber !== "false").length
+        const controllersWithSim = controllers.filter(controller => controller.cashless === "ON").length
 
 
         if(controllers.length > 0){
