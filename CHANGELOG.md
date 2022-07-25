@@ -186,3 +186,7 @@
 # 1.1.20 - Hotfix
 
 * bank bill number identification fix
+
+# 1.1.21 - Hotfix
+
+* controller cashless fix
