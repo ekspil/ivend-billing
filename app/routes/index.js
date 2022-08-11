@@ -204,7 +204,7 @@ function Routes({fastify, knex, robokassaService}) {
 
 
         if(controllers.length > 0){
-            const controllerFiscalPriceRow = Number((dayFiscalPrice + dayPriceResult * controllersNoSmart.length + dayPriceResultSmart * controllersSmart.length + Number(controllersWithSim) * terminalDayPriceResult).toFixed(2))
+            const controllerFiscalPriceRow = Number((dayFiscalPrice + dayPriceResult * controllersNoSmart + dayPriceResultSmart * controllersSmart + Number(controllersWithSim) * terminalDayPriceResult).toFixed(2))
             reply.type("application/json").code(200)
             return {price: controllerFiscalPriceRow}
 

@@ -110,7 +110,7 @@ function billTelemetry({knex}) {
                             "user_id": partnerId
                         })
                     if(feeSettings){
-                        const controllerFee = (dayPriceResult * controllersNoSmart.length + dayPriceResultSmart * controllersSmart.length ) * (Number(feeSettings.controller_fee)/100)
+                        const controllerFee = (dayPriceResult * controllersNoSmart + dayPriceResultSmart * controllersSmart) * (Number(feeSettings.controller_fee)/100)
                         const terminalFee = (Number(controllersWithSim) * terminalDayPriceResult) * (Number(feeSettings.terminal_fee)/100)
                         const kkmFee = Number(dayFiscalPrice) * (Number(feeSettings.kkm_fee)/100)
 
