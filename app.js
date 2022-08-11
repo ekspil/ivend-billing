@@ -12,7 +12,7 @@ const knex = require("knex")({
         password: process.env.POSTGRES_PASSWORD,
         database: process.env.POSTGRES_DB,
         port: process.env.POSTGRES_PORT,
-        ssl: false
+        ssl: true
     }
 })
 
