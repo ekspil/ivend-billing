@@ -148,8 +148,19 @@ function Routes({fastify, knex, robokassaService}) {
             tariff = {
                 fiscal: 2000,
                 telemetry: process.env.TELEMETRY_PRICE,
-                acquiring: process.env.TERMINAL_PRICE
+                acquiring: process.env.TERMINAL_PRICE,
+                smart: process.env.SMART_TERMINAL_PRICE
             }
+        }
+
+        function isSmart(controller){
+            if(controller.uid.slice(0, 3) === "400"){
+                return true
+            }
+            if(controller.uid.slice(0, 3) === "500"){
+                return true
+            }
+            return false
         }
 
 
@@ -158,6 +169,7 @@ function Routes({fastify, knex, robokassaService}) {
 
 
         const dayPriceResult = Number((Number(tariff.telemetry) / (new Date().daysInMonth())).toFixed(2))
+        const dayPriceResultSmart = Number((Number(tariff.smart) / (new Date().daysInMonth())).toFixed(2))
 
         const terminalDayPriceResult = Number((Number(tariff.acquiring) / (new Date().daysInMonth())).toFixed(2))
         const fiscalDayPriceResult = Number((Number(tariff.fiscal) / (new Date().daysInMonth())).toFixed(2))
@@ -174,7 +186,7 @@ function Routes({fastify, knex, robokassaService}) {
 
         const controllers = await knex
             .from("controllers")
-            .select("controllers.user_id as user_id", "controllers.status as status", "controllers.id as controller_id", "controllers.sim_card_number as simCardNumber", "controllers.cashless as cashless", "controllers.fiscalization_mode as fiscalizationMode")
+            .select("controllers.user_id as user_id", "controllers.status as status", "controllers.uid as uid", "controllers.id as controller_id", "controllers.sim_card_number as simCardNumber", "controllers.cashless as cashless", "controllers.fiscalization_mode as fiscalizationMode")
             .where({
                 "controllers.user_id": userId,
                 "controllers.status": "ENABLED"
@@ -186,12 +198,13 @@ function Routes({fastify, knex, robokassaService}) {
         const dayFiscalPrice = Number((Number(fiscalDayPriceResult) / Number(process.env.LOW_FISCAL_COST_LIMIT)  * controllerCount).toFixed(2))
 
 
-
-        const controllersWithSim = controllers.filter(controller => controller.cashless === "ON").length
+        const controllersNoSmart = controllers.filter(controller => !isSmart(controller)).length
+        const controllersSmart = controllers.filter(controller => isSmart(controller)).length
+        const controllersWithSim = controllers.filter(controller => controller.cashless === "ON" && !isSmart(controller)).length
 
 
         if(controllers.length > 0){
-            const controllerFiscalPriceRow = Number((dayFiscalPrice + dayPriceResult * controllers.length + Number(controllersWithSim) * terminalDayPriceResult).toFixed(2))
+            const controllerFiscalPriceRow = Number((dayFiscalPrice + dayPriceResult * controllersNoSmart.length + dayPriceResultSmart * controllersSmart.length + Number(controllersWithSim) * terminalDayPriceResult).toFixed(2))
             reply.type("application/json").code(200)
             return {price: controllerFiscalPriceRow}
 
@@ -230,7 +243,7 @@ function Routes({fastify, knex, robokassaService}) {
 
 
         let [tariff] = await knex("tariffs")
-            .select("telemetry", "acquiring", "fiscal", "partner_id", "started_at")
+            .select("telemetry", "acquiring", "fiscal", "smart", "partner_id", "started_at")
             .where("partner_id", Number(partnerId))
             .andWhere("started_at", "<", new Date())
             .orderBy("id", "desc")
@@ -240,7 +253,8 @@ function Routes({fastify, knex, robokassaService}) {
             tariff = {
                 fiscal: 2000,
                 telemetry: process.env.TELEMETRY_PRICE,
-                acquiring: process.env.TERMINAL_PRICE
+                acquiring: process.env.TERMINAL_PRICE,
+                smart: process.env.SMART_TERMINAL_PRICE
             }
         }
 
