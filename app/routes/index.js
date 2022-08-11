@@ -138,7 +138,7 @@ function Routes({fastify, knex, robokassaService}) {
 
 
         let [tariff] = await knex("tariffs")
-            .select("telemetry", "acquiring", "fiscal", "partner_id", "started_at")
+            .select("telemetry", "acquiring", "fiscal", "smart", "partner_id", "started_at")
             .where("partner_id", Number(partnerId))
             .andWhere("started_at", "<", new Date())
             .orderBy("id", "desc")
