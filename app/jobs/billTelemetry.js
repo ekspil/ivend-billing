@@ -1,4 +1,13 @@
 const logger = require("my-custom-logger")
+function isSmart(controller){
+    if(controller.uid.slice(0, 3) === "400"){
+        return true
+    }
+    if(controller.uid.slice(0, 3) === "500"){
+        return true
+    }
+    return false
+}
 
 function billTelemetry({knex}) {
     return async () => {
@@ -36,15 +45,7 @@ function billTelemetry({knex}) {
             }
 
 
-            function isSmart(controller){
-                if(controller.uid.slice(0, 3) === "400"){
-                    return true
-                }
-                if(controller.uid.slice(0, 3) === "500"){
-                    return true
-                }
-                return false
-            }
+
 
             for (const user of users) {
                 const userId = user.id
@@ -132,7 +133,7 @@ function billTelemetry({knex}) {
 
 
                 if(controllers.length > 0){
-                    const controllerFiscalPriceRow = Number((dayFiscalPrice + dayPriceResult * controllersNoSmart.length + dayPriceResultSmart * controllersSmart.length  + Number(controllersWithSim) * terminalDayPriceResult).toFixed(2))
+                    const controllerFiscalPriceRow = Number((dayFiscalPrice + dayPriceResult * controllersNoSmart + dayPriceResultSmart * controllersSmart  + Number(controllersWithSim) * terminalDayPriceResult).toFixed(2))
                     statistic.amount = Number(statistic.amount) + Number(controllerFiscalPriceRow)
                     let newBalance = Number(user.balance) - Number(controllerFiscalPriceRow)
                     if(newBalance > 0) {

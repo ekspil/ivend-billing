@@ -1,4 +1,13 @@
 const logger = require("my-custom-logger")
+function isSmart(controller){
+    if(controller.uid.slice(0, 3) === "400"){
+        return true
+    }
+    if(controller.uid.slice(0, 3) === "500"){
+        return true
+    }
+    return false
+}
 
 function billTelemetryPartner({knex}) {
     return async () => {
@@ -32,7 +41,7 @@ function billTelemetryPartner({knex}) {
 
                 let [tariff] = await knex("tariffs")
                     .transacting(trx)
-                    .select("telemetry", "acquiring", "fiscal", "partner_id", "started_at")
+                    .select("telemetry", "acquiring", "smart", "fiscal", "partner_id", "started_at")
                     .where("partner_id",  partner.id)
                     .andWhere("started_at", "<", new Date())
                     .orderBy("id", "desc")
@@ -42,11 +51,11 @@ function billTelemetryPartner({knex}) {
                     tariff = {
                         fiscal: 2000,
                         telemetry: process.env.TELEMETRY_PRICE,
-                        acquiring: process.env.TERMINAL_PRICE
+                        acquiring: process.env.TERMINAL_PRICE,
+                        smart: process.env.SMART_TERMINAL_PRICE
                     }
                 }
-            
-            
+
 
                 for (const user of users) {
                     const userId = user.id
@@ -60,6 +69,7 @@ function billTelemetryPartner({knex}) {
                     }
 
                     const dayPriceResult = Number((Number(tariff.telemetry) / (new Date().daysInMonth())).toFixed(2))
+                    const dayPriceResultSmart = Number((Number(tariff.smart) / (new Date().daysInMonth())).toFixed(2))
 
                     const terminalDayPriceResult = Number((Number(tariff.acquiring) / (new Date().daysInMonth())).toFixed(2))
                     const fiscalDayPriceResult = Number((Number(tariff.fiscal) / (new Date().daysInMonth())).toFixed(2))
@@ -77,7 +87,7 @@ function billTelemetryPartner({knex}) {
                     const controllers = await knex
                         .transacting(trx)
                         .from("controllers")
-                        .select("controllers.user_id as user_id", "controllers.status as status", "controllers.id as controller_id", "controllers.sim_card_number as simCardNumber", "controllers.cashless as cashless", "controllers.fiscalization_mode as fiscalizationMode")
+                        .select("controllers.user_id as user_id",  "controllers.uid as uid", "controllers.status as status", "controllers.id as controller_id", "controllers.sim_card_number as simCardNumber", "controllers.cashless as cashless", "controllers.fiscalization_mode as fiscalizationMode")
                         .where({
                             "controllers.user_id": userId,
                             "controllers.status": "ENABLED"
@@ -89,7 +99,11 @@ function billTelemetryPartner({knex}) {
                     const fiscalControllers = controllers.filter(controller => controller.fiscalizationMode !== "NO_FISCAL")
                     const controllerCount = (kktOk.length == 0) ? 0 : Math.max(fiscalControllers.length, (Number(process.env.LOW_FISCAL_COST_LIMIT)* kktOk.length))
                     const dayFiscalPrice = Number((Number(fiscalDayPriceResult) / Number(process.env.LOW_FISCAL_COST_LIMIT)  * controllerCount).toFixed(2))
-                    const controllersWithSim = controllers.filter(controller => controller.cashless === "ON").length
+
+
+                    const controllersNoSmart = controllers.filter(controller => !isSmart(controller)).length
+                    const controllersSmart = controllers.filter(controller => isSmart(controller)).length
+                    const controllersWithSim = controllers.filter(controller => controller.cashless === "ON"  && !isSmart(controller)).length
 
 
 
@@ -105,7 +119,7 @@ function billTelemetryPartner({knex}) {
                                 "user_id": partnerId
                             })
                         if(feeSettings){
-                            const controllerFee = (dayPriceResult * controllers.length) * (Number(feeSettings.controller_fee)/100)
+                            const controllerFee = (dayPriceResult * controllersNoSmart + dayPriceResultSmart * controllersSmart) * (Number(feeSettings.controller_fee)/100)
                             const terminalFee = (Number(controllersWithSim) * terminalDayPriceResult) * (Number(feeSettings.terminal_fee)/100)
                             const kkmFee = Number(dayFiscalPrice) * (Number(feeSettings.kkm_fee)/100)
 
@@ -127,7 +141,7 @@ function billTelemetryPartner({knex}) {
 
 
                     if(controllers.length > 0){
-                        const controllerFiscalPriceRow = Number((dayFiscalPrice + dayPriceResult * controllers.length + Number(controllersWithSim) * terminalDayPriceResult).toFixed(2))
+                        const controllerFiscalPriceRow = Number((dayFiscalPrice + dayPriceResult * controllersNoSmart + dayPriceResultSmart * controllersSmart  + Number(controllersWithSim) * terminalDayPriceResult).toFixed(2))
                         statistic.amount = Number(statistic.amount) + Number(controllerFiscalPriceRow)
                         let newBalance = Number(user.balance) - Number(controllerFiscalPriceRow)
                         if(newBalance > 0) {
