@@ -190,3 +190,7 @@
 # 1.1.21 - Hotfix
 
 * controller cashless fix
+
+# 1.1.22 - Hotfix
+
+* smart terminal fix
