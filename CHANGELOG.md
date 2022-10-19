@@ -194,3 +194,7 @@
 # 1.1.22 - Hotfix
 
 * smart terminal fix
+
+# 1.1.23 - Hotfix
+
+* double transactions fix

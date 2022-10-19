@@ -39,12 +39,18 @@ function Routes({fastify, knex, robokassaService}) {
 
             logger.info(`Robokassa approved payment for ${paymentRequest.to}, amount ${deposit.amount}`)
 
+            const anyIn = await knex("transactions").where({meta: `deposit_${deposit.id}_${InvId}`}).transacting(trx).first()
+            if(anyIn){
+
+                return reply.type("application/json").code(200).send({message: "Okay"})
+            }
+
             await knex("transactions")
                 .transacting(trx)
                 .insert({
                     amount: deposit.amount,
                     user_id: deposit.user_id,
-                    meta: `deposit_${deposit.id}`,
+                    meta: `deposit_${deposit.id}_${InvId}`,
                     created_at: new Date(),
                     updated_at: new Date()
                 })
