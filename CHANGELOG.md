@@ -198,3 +198,7 @@
 # 1.1.23 - Hotfix
 
 * double transactions fix
+
+# 1.1.24 - Hotfix
+
+* add orange billing
