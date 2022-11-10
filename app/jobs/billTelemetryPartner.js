@@ -80,8 +80,8 @@ function billTelemetryPartner({knex}) {
                         .from("kkts")
                         .where("kkts.user_id", userId)
                         .whereNot("kkts.kktActivationDate", "")
-                        .andWhereNot("kkts.type", "orange")
                         .whereNotNull("kkts.kktActivationDate")
+                        .andWhereNot("kkts.type", "orange")
 
 
 
