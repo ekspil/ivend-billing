@@ -186,6 +186,7 @@ function Routes({fastify, knex, robokassaService}) {
             .select("kkts.user_id as user_id", "kkts.kktActivationDate as kktActivationDate", "kkts.id as kkt_id")
             .where("kkts.user_id", userId)
             .whereNot("kkts.kktActivationDate", "")
+            .andWhereNot("kkts.type", "orange")
             .whereNotNull("kkts.kktActivationDate")
 
 
