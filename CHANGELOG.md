@@ -206,3 +206,7 @@
 # 1.1.25 - Hotfix
 
 * add orange billing
+
+# 1.1.26 - Hotfix
+
+* hotfix
