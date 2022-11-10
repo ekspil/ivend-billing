@@ -49,8 +49,8 @@ const scheduleTasks = async ({knex}) => {
             })
     })
 
-    // Every day at 03:00
-    cron.schedule("0 5 * * * *", () => { //"0 5 * * *"
+    // Every day at 05:00
+    cron.schedule("0 5 * * *", () => { //"0 5 * * *"
         billTelemetryOrange()
             .then(() => {
                 logger.info("Successfully billed orange for current day")

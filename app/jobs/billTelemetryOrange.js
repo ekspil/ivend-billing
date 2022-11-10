@@ -11,7 +11,7 @@ function billTelemetryOrange({knex}) {
                 .whereIn("type", ["orange"])
 
             const tariff = {
-                fiscal_one: Number(process.env.ORANGE_PRICE)
+                fiscal_one: Number(process.env.ORANGE_PRICE) || 0.25
             }
 
             let day = new Date().getUTCDate()
