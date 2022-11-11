@@ -174,11 +174,11 @@ function Routes({fastify, knex, robokassaService}) {
 
 
 
-        const dayPriceResult = Number((Number(tariff.telemetry) / (new Date().daysInMonth())).toFixed(2))
-        const dayPriceResultSmart = Number((Number(tariff.smart) / (new Date().daysInMonth())).toFixed(2))
+        const dayPriceResult = (Number(tariff.telemetry) / (new Date().daysInMonth()))
+        const dayPriceResultSmart = (Number(tariff.smart) / (new Date().daysInMonth()))
 
-        const terminalDayPriceResult = Number((Number(tariff.acquiring) / (new Date().daysInMonth())).toFixed(2))
-        const fiscalDayPriceResult = Number((Number(tariff.fiscal) / (new Date().daysInMonth())).toFixed(2))
+        const terminalDayPriceResult = (Number(tariff.acquiring) / (new Date().daysInMonth()))
+        const fiscalDayPriceResult = (Number(tariff.fiscal) / (new Date().daysInMonth()))
 
 
         const kktOk = await knex
@@ -202,7 +202,7 @@ function Routes({fastify, knex, robokassaService}) {
 
         const fiscalControllers = controllers.filter(controller => controller.fiscalizationMode !== "NO_FISCAL")
         const controllerCount = (kktOk.length == 0) ? 0 : Math.max(fiscalControllers.length, (Number(process.env.LOW_FISCAL_COST_LIMIT)* kktOk.length))
-        const dayFiscalPrice = Number((Number(fiscalDayPriceResult) / Number(process.env.LOW_FISCAL_COST_LIMIT)  * controllerCount).toFixed(2))
+        const dayFiscalPrice = (Number(fiscalDayPriceResult) / Number(process.env.LOW_FISCAL_COST_LIMIT)  * controllerCount)
 
 
         const controllersNoSmart = controllers.filter(controller => !isSmart(controller)).length
@@ -214,7 +214,6 @@ function Routes({fastify, knex, robokassaService}) {
             const controllerFiscalPriceRow = Number((dayFiscalPrice + dayPriceResult * controllersNoSmart + dayPriceResultSmart * controllersSmart + Number(controllersWithSim) * terminalDayPriceResult).toFixed(2))
             reply.type("application/json").code(200)
             return {price: controllerFiscalPriceRow}
-
         } else {
 
 

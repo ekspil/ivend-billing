@@ -210,3 +210,7 @@
 # 1.1.26 - Hotfix
 
 * hotfix
+
+# 1.1.29 - Hotfix
+
+* hotfix dayly price
