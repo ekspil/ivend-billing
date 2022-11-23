@@ -143,20 +143,31 @@ function Routes({fastify, knex, robokassaService}) {
         if(user.partner_id) partnerId = user.partner_id
 
 
-        let [tariff] = await knex("tariffs")
+        let [tariffData] = await knex("tariffs")
             .select("telemetry", "acquiring", "fiscal", "smart", "partner_id", "started_at")
             .where("partner_id", Number(partnerId))
             .andWhere("started_at", "<", new Date())
             .orderBy("id", "desc")
             .limit(1)
 
-        if(!tariff){
+        let tariff
+
+        if(!tariffData){
             tariff = {
                 fiscal: 2000,
                 telemetry: process.env.TELEMETRY_PRICE,
                 acquiring: process.env.TERMINAL_PRICE,
                 smart: process.env.SMART_TERMINAL_PRICE
             }
+        }
+        else {
+            tariff = {
+                fiscal: Number(tariffData.fiscal) || 2000,
+                telemetry: Number(tariffData.telemetry) || process.env.TELEMETRY_PRICE,
+                acquiring: Number(tariffData.acquiring) || process.env.TERMINAL_PRICE,
+                smart: Number(tariffData.smart) || process.env.SMART_TERMINAL_PRICE
+            }
+
         }
 
         function isSmart(controller){
@@ -248,20 +259,31 @@ function Routes({fastify, knex, robokassaService}) {
         if(user.partner_id) partnerId = user.partner_id
 
 
-        let [tariff] = await knex("tariffs")
+        let [tariffData] = await knex("tariffs")
             .select("telemetry", "acquiring", "fiscal", "smart", "partner_id", "started_at")
             .where("partner_id", Number(partnerId))
             .andWhere("started_at", "<", new Date())
             .orderBy("id", "desc")
             .limit(1)
 
-        if(!tariff){
+        let tariff
+
+        if(!tariffData){
             tariff = {
                 fiscal: 2000,
                 telemetry: process.env.TELEMETRY_PRICE,
                 acquiring: process.env.TERMINAL_PRICE,
                 smart: process.env.SMART_TERMINAL_PRICE
             }
+        }
+        else {
+            tariff = {
+                fiscal: Number(tariffData.fiscal) || 2000,
+                telemetry: Number(tariffData.telemetry) || process.env.TELEMETRY_PRICE,
+                acquiring: Number(tariffData.acquiring) || process.env.TERMINAL_PRICE,
+                smart: Number(tariffData.smart) || process.env.SMART_TERMINAL_PRICE
+            }
+
         }
 
         reply.type("application/json").code(200)

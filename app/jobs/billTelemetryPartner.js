@@ -39,7 +39,7 @@ function billTelemetryPartner({knex}) {
 
 
 
-                let [tariff] = await knex("tariffs")
+                let [tariffData] = await knex("tariffs")
                     .transacting(trx)
                     .select("telemetry", "acquiring", "smart", "fiscal", "partner_id", "started_at")
                     .where("partner_id",  partner.id)
@@ -47,13 +47,24 @@ function billTelemetryPartner({knex}) {
                     .orderBy("id", "desc")
                     .limit(1)
 
-                if(!tariff){
+                let tariff
+
+                if(!tariffData){
                     tariff = {
                         fiscal: 2000,
                         telemetry: process.env.TELEMETRY_PRICE,
                         acquiring: process.env.TERMINAL_PRICE,
                         smart: process.env.SMART_TERMINAL_PRICE
                     }
+                }
+                else {
+                    tariff = {
+                        fiscal: Number(tariffData.fiscal) || 2000,
+                        telemetry: Number(tariffData.telemetry) || process.env.TELEMETRY_PRICE,
+                        acquiring: Number(tariffData.acquiring) || process.env.TERMINAL_PRICE,
+                        smart: Number(tariffData.smart) || process.env.SMART_TERMINAL_PRICE
+                    }
+
                 }
 
 

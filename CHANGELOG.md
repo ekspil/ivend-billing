@@ -214,3 +214,7 @@
 # 1.1.29 - Hotfix
 
 * hotfix dayly price
+
+# 1.1.30 - Hotfix
+
+* fix return to default billing
