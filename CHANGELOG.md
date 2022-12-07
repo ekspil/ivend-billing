@@ -222,3 +222,7 @@
 # 1.1.31 - Hotfix
 
 * add robokassa receipt info
+
+# 1.1.32 - Hotfix
+
+* default tariffs new rules
