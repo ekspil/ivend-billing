@@ -218,3 +218,7 @@
 # 1.1.30 - Hotfix
 
 * fix return to default billing
+
+# 1.1.31 - Hotfix
+
+* add robokassa receipt info
