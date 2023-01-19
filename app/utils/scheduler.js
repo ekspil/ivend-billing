@@ -9,6 +9,7 @@ const scheduleTasks = async ({knex}) => {
     const fastSalesUpdate = require("../jobs/fastSalesUpdate")({knex})
     const yesterdaySalesUpdate = require("../jobs/yesterdaySalesUpdate")({knex})
     const checkForBills = require("../jobs/checkForBills")({knex})
+    const createPartnerCloseDocuments = require("../jobs/partnerCloseDocuments")({knex})
 
 
     // Every day at 00:00
@@ -96,6 +97,18 @@ const scheduleTasks = async ({knex}) => {
             })
             .catch((e) => {
                 logger.error("Failed to check for negative balances")
+                logger.error(e)
+                //TODO notificate
+            })
+    })
+    // Every month at 01:00
+    cron.schedule("00 00 1 1 * *", () => {
+        createPartnerCloseDocuments()
+            .then(() => {
+                logger.info("Successfully_created_closing_documets")
+            })
+            .catch((e) => {
+                logger.error("Failed_to_create_close_documents")
                 logger.error(e)
                 //TODO notificate
             })

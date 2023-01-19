@@ -226,3 +226,7 @@
 # 1.1.32 - Hotfix
 
 * default tariffs new rules
+
+# 1.1.33 - Hotfix
+
+* partner fee act
