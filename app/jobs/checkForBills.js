@@ -15,15 +15,18 @@ function billDailyServices({knex}) {
     return async () => {
         logger.info(`BILLING_BANK_REQUEST_${getDate()}`)
 
-        const urlStatement = "https://enter.tochka.com//api/v1/statement"
+        const urlStatement = "https://enter.tochka.com/uapi/open-banking/v1.0/statements"
 
-
+        const accountId = "40702810203500006986/044525999"
 
         const body = {
-            "account_code": "40702810203500006986",
-            "bank_code": "044525999",
-            "date_end": getDate(),
-            "date_start": getDate()
+            Data: {
+                Statement: {
+                    accountId,
+                    startDateTime: getDate(),
+                    endDateTime: getDate()
+                }
+            }
         }
 
         const optsStatement = {
@@ -38,7 +41,7 @@ function billDailyServices({knex}) {
         const resultStatement = await fetch(urlStatement, optsStatement)
         logger.info(`BILLING_BANK_REQUEST_STATUS1_${resultStatement.status}`)
         const jsonStatement = await resultStatement.json()
-        const request_id = jsonStatement.request_id
+        const request_id = jsonStatement.Data.Statement.statementId
 
         const timer = async () => {
 
@@ -49,7 +52,7 @@ function billDailyServices({knex}) {
         }
         await timer()
 
-        const result = await fetch("https://enter.tochka.com/api/v1/statement/result/" + request_id, {
+        const result = await fetch(`https://enter.tochka.com/uapi/open-banking/v1.0/accounts/${accountId}/statements/${request_id}`, {
             method: "GET",
             headers: {
                 "Authorization": "Bearer " + process.env.BANK_TOKEN
@@ -57,16 +60,17 @@ function billDailyServices({knex}) {
         })
         logger.info(`BILLING_BANK_REQUEST_STATUS2_${result.status}`)
         const json = await result.json()
-        if(!json.payments || json.payments.length < 1) return
+        if(!json.Data || json.Data.Statement.length < 1 || !json.Data.Statement[0].Transaction) return
 
-        const payments = json.payments.filter(item => {
-            if(Number(item.payment_amount) > 0) return true
+        const payments = json.Data.Statement[0].Transaction.filter(item => {
+            if(Number(item.Amount.amount) > 0) return true
             return false
         })
 
         for( let pay of payments){
+            const paymentAmount = pay.Amount.amount
             const subString = "VFT"
-            const string = pay.payment_purpose.toUpperCase()
+            const string = pay.description.toUpperCase()
             if( !string.includes(subString)) continue
             let finded = false
             const num = string.split(" ").find(item => {
@@ -106,7 +110,7 @@ function billDailyServices({knex}) {
                     .transacting(trx)
                     .update({
                         applied: true,
-                        meta: pay.payment_bank_system_id
+                        meta: pay.transactionId
                     })
                     .where("id", Number(orderId))
 
@@ -114,7 +118,7 @@ function billDailyServices({knex}) {
                     .transacting(trx)
                     .returning("id")
                     .insert({
-                        amount: Number(pay.payment_amount),
+                        amount: Number(paymentAmount),
                         user_id: Number(bank_payment.user_id),
                         meta: `BANK_PAYMENT_${orderId}_USER_${bank_payment.user_id}`,
                         created_at: new Date(),
@@ -137,7 +141,7 @@ function billDailyServices({knex}) {
                 await knex("deposits")
                     .transacting(trx)
                     .insert({
-                        amount: Number(pay.payment_amount),
+                        amount: Number(paymentAmount),
                         payment_request_id: Number(paymentRequestId),
                         user_id: Number(bank_payment.user_id),
                         created_at: new Date(),
@@ -145,7 +149,7 @@ function billDailyServices({knex}) {
                     })
 
 
-                logger.info(`billing_bank_integration_success bill: VFT${orderId}, user: ${bank_payment.user_id}, amount: ${pay.payment_amount}`)
+                logger.info(`billing_bank_integration_success bill: VFT${orderId}, user: ${bank_payment.user_id}, amount: ${paymentAmount}`)
 
             })
 

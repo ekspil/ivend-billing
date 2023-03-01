@@ -230,3 +230,7 @@
 # 1.1.33 - Hotfix
 
 * partner fee act
+
+# 1.1.34 - Hotfix
+
+* tochka bank api v2
