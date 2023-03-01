@@ -46,7 +46,7 @@ function billTelemetry({knex}) {
                 }
             }
 
-            else if (Number(tariffData.fiscal) === 0 && Number(tariffData.telemetry) && Number(tariffData.acquiring) === 0 && Number(tariffData.smart) === 0) {
+            else if (Number(tariffData.fiscal) === 0 && Number(tariffData.telemetry) === 0 && Number(tariffData.acquiring) === 0 && Number(tariffData.smart) === 0) {
                 tariff = {
                     fiscal: 2000,
                     telemetry: Number(process.env.TELEMETRY_PRICE),

@@ -234,3 +234,7 @@
 # 1.1.34 - Hotfix
 
 * tochka bank api v2
+
+# 1.1.35 - Hotfix
+
+* billing fix
