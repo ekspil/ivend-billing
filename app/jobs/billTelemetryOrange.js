@@ -36,6 +36,9 @@ function billTelemetryOrange({knex}) {
 
 
 
+            const statistic = {
+                amount: 0
+            }
 
             for (const kkt of kkts) {
 
@@ -53,6 +56,7 @@ function billTelemetryOrange({knex}) {
 
                 const amount = Number(tariff.fiscal_one) * sales.length
                 if(amount === 0) continue
+                statistic.amount = Number(statistic.amount) + Number(amount)
 
 
 
@@ -70,6 +74,22 @@ function billTelemetryOrange({knex}) {
 
 
             }
+
+
+
+            const row = await knex("admin_statistics")
+                .transacting(trx)
+                .first("id", "billing_amount")
+                .orderBy("id", "desc")
+
+
+            await knex("admin_statistics")
+                .transacting(trx)
+                .update({
+                    billing_amount: Number(statistic.amount) + Number(row.billing_amount),
+                    updated_at: new Date()
+                })
+                .where("id", row.id)
 
         })
 
