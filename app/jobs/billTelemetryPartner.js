@@ -19,7 +19,11 @@ function billTelemetryPartner({knex}) {
                 .select("users.id as id", "users.partner_id as partner_id", "temps.amount as balance")
                 .where("users.role", "PARTNER")
 
-
+            const statistic = {
+                amount: 0,
+                balance: 0,
+                credit: 0
+            }
             for(let partner of partners){
                 logger.info(`Starting billing for Partner telemtry at ${new Date()}`)
 
@@ -29,11 +33,7 @@ function billTelemetryPartner({knex}) {
                     .select("users.id as id", "users.partner_id as partner_id", "temps.amount as balance")
                     .where("users.partner_id", "=", partner.id)
 
-                const statistic = {
-                    amount: 0,
-                    balance: 0,
-                    credit: 0
-                }
+
 
                 users.push(partner)
 
@@ -210,22 +210,25 @@ function billTelemetryPartner({knex}) {
                 }
 
 
-                await knex("admin_statistics")
-                    .transacting(trx)
-                    .insert({
-                        billing_amount: statistic.amount,
-                        billing_balance: statistic.balance,
-                        billing_credit: statistic.credit,
-                        controllers_count: 0,
-                        controllers_disabled: 0,
-                        controllers_disconnected: 0,
-                        kkts_count: 0,
-                        kkts_normal: 0,
-                        kkts_error: 0,
-                        created_at: new Date(),
-                        updated_at: new Date()
-                    })
             }
+
+            const row = await knex("admin_statistics")
+                .transacting(trx)
+                .first("id", "billing_amount", "billing_balance", "billing_credit")
+                .orderBy("id", "desc")
+
+
+            await knex("admin_statistics")
+                .transacting(trx)
+                .update({
+                    billing_amount: Number(statistic.amount) + Number(row.billing_amount),
+                    billing_balance: Number(statistic.balance) + Number(row.billing_balance),
+                    billing_credit: Number(statistic.credit) + Number(row.billing_credit),
+                    updated_at: new Date()
+                })
+                .where("id", row.id)
+
+
         })
 
     }
