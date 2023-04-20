@@ -1,5 +1,5 @@
 
-function updateFastSales({knex}) {
+function updateFastSales({knex, logger}) {
     return async () => {
         return knex.transaction(async (trx) => {
 
@@ -8,7 +8,6 @@ function updateFastSales({knex}) {
             const time_zone = String(hour)
 
             let users
-
             if(hour === 3){
                 users = await knex("users")
                     .transacting(trx)
@@ -28,17 +27,23 @@ function updateFastSales({knex}) {
 
             if(!users || users.length === 0) return
 
-            const userIds = users.map(user => {
-                return Number(user.id)
-            })
 
-            await knex("temps")
-                .transacting(trx)
-                .update({
-                    amount_today: 0,
-                    count_today: 0
-                })
-                .whereIn("user_id", userIds)
+            for (let user of users){
+
+                try{
+                    await knex("temps")
+                        .transacting(trx)
+                        .update({
+                            amount_today: 0,
+                            count_today: 0
+                        })
+                        .where("user_id", Number(user.id))
+
+                }
+                catch (e) {
+                    logger.debug(`temp_table_error user: ${user.id}, message: ${e.message}`)
+                }
+            }
 
                         
                     

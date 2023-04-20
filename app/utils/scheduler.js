@@ -6,7 +6,7 @@ const scheduleTasks = async ({knex}) => {
     const billTelemetryPartner = require("../jobs/billTelemetryPartner")({knex})
     const billTelemetryOrange = require("../jobs/billTelemetryOrange")({knex})
     const checkForNegativeBalance = require("../jobs/checkForNegativeBalance")({knex})
-    const fastSalesUpdate = require("../jobs/fastSalesUpdate")({knex})
+    const fastSalesUpdate = require("../jobs/fastSalesUpdate")({knex, logger})
     const yesterdaySalesUpdate = require("../jobs/yesterdaySalesUpdate")({knex})
     const checkForBills = require("../jobs/checkForBills")({knex})
     const createPartnerCloseDocuments = require("../jobs/partnerCloseDocuments")({knex})
@@ -25,7 +25,7 @@ const scheduleTasks = async ({knex}) => {
             })
     })
     // Every day at 00:01
-    cron.schedule("*/60 * * * *", () => {
+    cron.schedule("10 */1 * * *", () => {
         yesterdaySalesUpdate()
             .then(() => {
                 logger.info("Successfully updated fast sales table for yesterday for time zone " + String(24 - new Date().getUTCHours()))

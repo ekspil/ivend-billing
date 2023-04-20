@@ -242,3 +242,7 @@
 # 1.1.36 - Hotfix
 
 * billing fix
+
+# 1.1.37 - Hotfix
+
+* billing fix
