@@ -246,3 +246,7 @@
 # 1.1.37 - Hotfix
 
 * billing fix
+
+# 1.1.38 - Hotfix
+
+* billing fix bank bill number finding

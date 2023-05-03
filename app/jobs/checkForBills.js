@@ -70,16 +70,18 @@ function billDailyServices({knex}) {
         for( let pay of payments){
             const paymentAmount = pay.Amount.amount
             const subString = "VFT"
+            const subString2 = "VTF"
             const string = pay.description.toUpperCase()
-            if( !string.includes(subString)) continue
+
+            if( !string.includes(subString) && !string.includes(subString2)) continue
             let finded = false
             const num = string.split(" ").find(item => {
                 if(finded) {
                     finded = false
                     return true
                 }
-                if (item.includes(subString) && item !== subString) return true
-                if (item.includes(subString) && item === subString) {
+                if ((item.includes(subString) || item.includes(subString2)) && (item !== subString && item !== subString2)) return true
+                if ((item.includes(subString) || item.includes(subString2)) && (item === subString || item === subString2)) {
                     finded = true
                     return false
                 }
