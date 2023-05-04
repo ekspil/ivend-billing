@@ -250,3 +250,7 @@
 # 1.1.38 - Hotfix
 
 * billing fix bank bill number finding
+
+# 1.1.39 - Hotfix
+
+* fix tariff request

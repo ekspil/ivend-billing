@@ -286,15 +286,26 @@ function Routes({fastify, knex, robokassaService}) {
                 smart: process.env.SMART_TERMINAL_PRICE
             }
         }
-        else {
+
+        else if (Number(tariffData.fiscal) === 0 && Number(tariffData.telemetry) === 0 && Number(tariffData.acquiring) === 0 && Number(tariffData.smart) === 0) {
             tariff = {
-                fiscal: Number(tariffData.fiscal) || 2000,
-                telemetry: Number(tariffData.telemetry) || process.env.TELEMETRY_PRICE,
-                acquiring: Number(tariffData.acquiring) || process.env.TERMINAL_PRICE,
-                smart: Number(tariffData.smart) || process.env.SMART_TERMINAL_PRICE
+                fiscal: 2000,
+                telemetry: Number(process.env.TELEMETRY_PRICE),
+                acquiring: Number(process.env.TERMINAL_PRICE),
+                smart: Number(process.env.SMART_TERMINAL_PRICE)
             }
 
         }
+        else {
+            tariff = {
+                fiscal: Number(tariffData.fiscal),
+                telemetry: Number(tariffData.telemetry),
+                acquiring: Number(tariffData.acquiring),
+                smart: Number(tariffData.smart)
+            }
+
+        }
+
 
         reply.type("application/json").code(200)
         return tariff
