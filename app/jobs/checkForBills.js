@@ -17,7 +17,7 @@ function billDailyServices({knex}) {
 
         const urlStatement = "https://enter.tochka.com/uapi/open-banking/v1.0/statements"
 
-        const accountId = "40702810203500006986/044525999"
+        const accountId = "40702810203500006986/044525104"
 
         const body = {
             Data: {

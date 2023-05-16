@@ -254,3 +254,7 @@
 # 1.1.39 - Hotfix
 
 * fix tariff request
+
+# 1.1.40 - Hotfix
+
+* fix bank request
