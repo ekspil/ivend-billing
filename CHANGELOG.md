@@ -258,3 +258,7 @@
 # 1.1.40 - Hotfix
 
 * fix bank request
+
+# 1.1.41 - Hotfix
+
+* fix aqsi billing

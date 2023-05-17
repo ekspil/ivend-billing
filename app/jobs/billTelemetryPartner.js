@@ -3,6 +3,9 @@ function isSmart(controller){
     if(controller.uid.slice(0, 3) === "400"){
         return true
     }
+    if(controller.uid.slice(0, 3) === "200"){
+        return true
+    }
     if(controller.uid.slice(0, 3) === "500"){
         return true
     }
