@@ -262,3 +262,7 @@
 # 1.1.41 - Hotfix
 
 * fix aqsi billing
+
+# 1.1.42 - Hotfix
+
+* fix partner act

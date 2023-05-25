@@ -41,14 +41,17 @@ function createCloseDocuments({knex}) {
 
                 const fees = await knex("partner_fees")
                     .transacting(trx)
-                    .select("controller_fee", "terminal_fee", "kkm_fee", "user_id", "partner_id", "created_at")
-                    .where({
-                        partner_id: partner.id,
+                    .select("controller_fee", "terminal_fee", "kkm_fee", "user_id", "partner_id", "created_at", "status")
+                    .where("partner_id", partner.id)
+                    .andWhere("created_at", "<", to)
+                    .andWhere(function (builder) {
+                        builder
+                            .whereNull("status")
+                            .orWhere("status", "SUCCESS")
+                        
                     })
-                    .andWhere("controller_fee", ">", 0)
-                    .andWhere(function() {
-                        this.where("created_at", ">", from).andWhere("created_at", "<", to)
-                    })
+                    
+                    
 
                 if(!fees || fees.length === 0) continue
 
@@ -57,6 +60,7 @@ function createCloseDocuments({knex}) {
                 }, 0)
 
                 if(amount < 1000) continue
+
 
 
                 await knex("partner_fees")
