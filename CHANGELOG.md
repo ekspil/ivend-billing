@@ -266,3 +266,7 @@
 # 1.1.42 - Hotfix
 
 * fix partner act
+
+# 1.1.43 - Hotfix
+
+* fix timezone correction

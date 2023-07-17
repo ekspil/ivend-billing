@@ -9,7 +9,6 @@ function updateFastSales({knex}) {
 
 
             let hour = 24 - new Date().getUTCHours()
-            if(hour === 24) hour = 0
             const time_zone = String(hour)
 
             const to = new Date()
